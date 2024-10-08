@@ -40,20 +40,20 @@ const ReviewCards: React.FC = () => {
   const reviews: Review[] = [
     {
       rating: 5,
-      quote: "Photo AI is just fantastic! I take amazing photos of my wife, family and friends. As a photographer I use it to test ideas before creating a real photoshoot. I strongly recommend!",
-      author: "Everaldo",
+      quote: "Stock AI is incredible! I create stunning video footage for my social media content in minutes. As a content creator, I use it to test concepts before investing in expensive production. The control over camera movements and scenes is unparalleled. Highly recommend!",
+      author: "Alex",
       verifiedPurchase: true
     },
     {
       rating: 5,
-      quote: "Cool AI tool for image generation! I could create a lot of truly amazing pictures in different locations with different outfits! All my friends were surprised and loved my pictures!",
-      author: "Iryna",
+      quote: "Amazing AI tool for video generation! I've created professional-looking stock footage for various locations and scenarios. The ability to add custom audio and adjust video length is game-changing. My followers are blown away by the quality!",
+      author: "Sophia",
       verifiedPurchase: true
     },
     {
       rating: 4,
-      quote: "Good input = good output. Very fun! Took me some effort to get the models to feel accurate but once I got the right input it was amazing. Photo AI was very responsive to my questions.",
-      author: "Jordan",
+      quote: "Precise prompts yield fantastic results. It's incredibly fun! Took some practice to master scene composition, but once I got it right, the output was mind-blowing. The audio sync feature is particularly impressive. Stock AI's customer support was very helpful.",
+      author: "Marcus",
       verifiedPurchase: true
     }
   ];

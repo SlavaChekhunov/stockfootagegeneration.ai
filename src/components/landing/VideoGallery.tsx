@@ -1,10 +1,11 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
-import VideoModal from './VideoModal'
+import { useState, useEffect } from 'react'
+// import VideoModal from './VideoModal'
 import ReviewCards from './ReviewCard';
+import VideoPreview from './VideoPreview';
 
 interface VideoItem {
-  id: number;
+  id: string;
   src: string;
   name: string;
 }
@@ -12,22 +13,18 @@ interface VideoItem {
 export default function VideoGallery() {
   const [videoItems, setVideoItems] = useState<VideoItem[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [currentVideoId, setCurrentVideoId] = useState<number | null>(null)
+  // const [modalOpen, setModalOpen] = useState(false)
+  // const [currentVideoId, setCurrentVideoId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('/api/getVideoFiles');
+        const response = await fetch('/api/landing-videos');
         if (!response.ok) {
           throw new Error('Failed to fetch videos');
         }
-        const data: Omit<VideoItem, 'id'>[] = await response.json();
-        const videosWithIds: VideoItem[] = data.map((item, index) => ({
-          ...item,
-          id: index + 1
-        }));
-        setVideoItems(videosWithIds);
+        const data: VideoItem[] = await response.json();
+        setVideoItems(data);
       } catch (error) {
         console.error('Error fetching videos:', error);
         setError('Failed to load videos. Please try again later.');
@@ -37,9 +34,11 @@ export default function VideoGallery() {
     fetchVideos();
   }, [])
 
-  const openModal = (id: number) => {
-    setCurrentVideoId(id);
-    setModalOpen(true);
+  const openModal = (id: string) => {
+    // Commented out modal functionality
+    // setCurrentVideoId(id);
+    // setModalOpen(true);
+    console.log('Modal opening disabled for video:', id);
   }
 
   if (error) {
@@ -47,7 +46,7 @@ export default function VideoGallery() {
   }
 
   return (
-   <div className="relative min-h-screen text-white p-4 -mt-16">
+    <div className="relative min-h-screen text-white p-4 -mt-16">
       {/* Review Cards */}
       <div className="absolute z-50 -top-5 left-1/2 transform -translate-x-1/2 w-full max-w-7xl">
         <ReviewCards />
@@ -66,57 +65,60 @@ export default function VideoGallery() {
           />
         ))}
       </div>
+      {/* Commented out VideoModal
       {currentVideoId !== null && (
         <VideoModal 
           isOpen={modalOpen} 
           setIsOpen={setModalOpen}
           initialVideoId={currentVideoId}
+          videos={videoItems}
         />
       )}
+      */}
     </div>
   )
 }
 
-interface VideoPreviewProps {
-  item: VideoItem;
-  openModal: (id: number) => void;
-  className?: string;
-}
+// interface VideoPreviewProps {
+//   item: VideoItem;
+//   openModal: (id: number) => void;
+//   className?: string;
+// }
 
-function VideoPreview({ item, openModal, className }: VideoPreviewProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+// function VideoPreview({ item, openModal, className }: VideoPreviewProps) {
+//   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleMouseEnter = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-    }
-  };
+//   const handleMouseEnter = () => {
+//     if (videoRef.current) {
+//       videoRef.current.play();
+//     }
+//   };
 
-  const handleMouseLeave = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-  };
+//   const handleMouseLeave = () => {
+//     if (videoRef.current) {
+//       videoRef.current.pause();
+//       videoRef.current.currentTime = 0;
+//     }
+//   };
 
-  return (
-    <div 
-      className={`relative overflow-hidden rounded-lg cursor-pointer ${className}`}
-      onClick={() => openModal(item.id)}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <video
-        ref={videoRef}
-        src={item.src}
-        className="w-full h-full object-cover"
-        muted
-        loop
-        playsInline
-      />
-      <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-50 rounded px-2 py-1 text-xs">
-        {item.name}
-      </div>
-    </div>
-  )
-}
+//   return (
+//     <div 
+//       className={`relative overflow-hidden rounded-lg cursor-pointer ${className}`}
+//       onClick={() => openModal(item.id)}
+//       onMouseEnter={handleMouseEnter}
+//       onMouseLeave={handleMouseLeave}
+//     >
+//       <video
+//         ref={videoRef}
+//         src={item.src}
+//         className="w-full h-full object-cover"
+//         muted
+//         loop
+//         playsInline
+//       />
+//       <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-50 rounded px-2 py-1 text-xs">
+//         {item.name}
+//       </div>
+//     </div>
+//   )
+// }

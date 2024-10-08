@@ -24,9 +24,10 @@ const HeroSection: React.FC = () => {
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
         style={{ minWidth: '100%', minHeight: '100%' }}
       >
-        <source src="/assets/rapidsave.com_drone_to_butterfly_under_water_video_transitions-wtrcz5oykgjc1.mp4" type="video/mp4" />
+        <source src={`https://${process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/hero-section/rapidsave.com_drone_to_butterfly_under_water_video_transitions-wtrcz5oykgjc1.mp4`} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
 
       {/* Overlay to ensure text readability */}
       <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10"></div>
