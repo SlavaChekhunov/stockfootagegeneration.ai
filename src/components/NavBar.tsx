@@ -24,7 +24,7 @@ const NavBar = async () => {
           href='/'
           className='flex z-40 items-center'>
           <Image 
-            src="/stock-ai-logo.svg"
+            src={`https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/hero-section/stock-ai-logo.svg`}
             alt="Stock.ai Logo"
             width={180}
             height={42}

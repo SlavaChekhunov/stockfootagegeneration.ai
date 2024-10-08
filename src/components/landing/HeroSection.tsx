@@ -46,7 +46,7 @@ const HeroSection: React.FC = () => {
               <Star size={16}/>
             </span>
             <Image
-              src="/assets/laurel.svg"
+              src={`https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/hero-section/laurel.svg`}
               alt="Laurel"
               width={185}
               height={58}
