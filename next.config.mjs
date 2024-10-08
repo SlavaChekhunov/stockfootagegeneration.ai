@@ -4,6 +4,9 @@ const nextConfig = {
     images: {
       domains: ['localhost'],
     },
+    experimental: {
+      serverComponentsExternalPackages: ['@prisma/client', 'bcrypt'],
+    },
     webpack: (config) => {
       config.module.rules.push({
         test: /\.(mp4|webm|ogg)$/,
