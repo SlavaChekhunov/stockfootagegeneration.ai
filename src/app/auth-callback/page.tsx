@@ -30,12 +30,8 @@ const AuthCallbackComponent = () => {
         const data = await response.json();
 
         if (data.success) {
-          // Construct the correct redirect URL
-          const redirectUrl = origin 
-            ? origin.startsWith('/') ? origin : `/${origin}`
-            : '/dashboard';
-          
-          console.log('Redirecting to:', redirectUrl); // Log the redirect URL
+          const redirectUrl = origin || data.redirectUrl || '/pricing';
+          console.log('Redirecting to:', redirectUrl);
           router.push(redirectUrl);
         } else {
           throw new Error(data.message || 'Unknown error occurred');

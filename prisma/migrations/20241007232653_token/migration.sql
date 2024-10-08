@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "plan" TEXT NOT NULL DEFAULT 'Free',
+ADD COLUMN     "tokens" INTEGER NOT NULL DEFAULT 0;

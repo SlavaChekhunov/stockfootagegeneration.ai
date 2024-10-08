@@ -30,7 +30,7 @@ export async function POST() {
 
     console.log('User upserted successfully:', createdUser.id);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true,  redirectUrl: '/pricing'  });
   } catch (error) {
     console.error('Error syncing user:', error);
     

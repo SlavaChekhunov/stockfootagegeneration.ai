@@ -18,6 +18,8 @@ export async function getUserSubscriptionPlan() {
       isSubscribed: false,
       isCanceled: false,
       stripeCurrentPeriodEnd: null,
+      tokens: 0,
+      plan: "You're not on any plan yet",
     }
   }
 
@@ -33,6 +35,8 @@ export async function getUserSubscriptionPlan() {
       isSubscribed: false,
       isCanceled: false,
       stripeCurrentPeriodEnd: null,
+      tokens: 0,
+      plan: "You're not on any plan yet",
     }
   }
 
@@ -61,5 +65,7 @@ export async function getUserSubscriptionPlan() {
     stripeCustomerId: dbUser.stripeCustomerId,
     isSubscribed,
     isCanceled,
+    tokens: dbUser.tokens,
+    plan: plan?.name || "You're not on any plan yet",
   }
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Play, ChevronDown, ChevronLeft, ChevronRight, Upload, Smartphone, Monitor} from 'lucide-react'
+import { Play, ChevronDown, Upload, Smartphone, Monitor} from 'lucide-react'
 import { useState, useCallback,useEffect } from 'react'
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { Switch } from "@/components/ui/switch";
@@ -16,6 +16,8 @@ import { Video } from '../types/Video';
 import { toast } from "react-toastify"
 import Image from "next/image"
 
+
+
 const VideoGenerationUI: React.FC = () => {
   const [activeTab, setActiveTab] = useState('text-to-video');
   const [prompt, setPrompt] = useState('');
@@ -23,7 +25,6 @@ const VideoGenerationUI: React.FC = () => {
   const [status, setStatus] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [selectedVideoType, setSelectedVideoType] = useState('All Videos');
-  const [isRightPanelExpanded, setIsRightPanelExpanded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [generationPhase, setGenerationPhase] = useState<'idle' | 'submitting' | 'generating'>('idle');
@@ -48,7 +49,6 @@ const VideoGenerationUI: React.FC = () => {
   const [useTextToClipEndFrame, setUseTextToClipEndFrame] = useState(false);
 
   const [userVideos, setUserVideos] = useState<Video[]>([]);
-  // const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [imageS3Url, setImageS3Url] = useState<string | undefined>(undefined);
 
   const GENERATION_TIME = 263; 
@@ -327,6 +327,18 @@ const VideoGenerationUI: React.FC = () => {
     const startTime = Date.now();
   
     try {
+        // Deduct tokens
+    const deductResponse = await fetch('/api/deduct-tokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokensToDeduct: 50 }),
+    });
+
+    if (!deductResponse.ok) {
+      const errorData = await deductResponse.json();
+      throw new Error(errorData.message || 'Failed to deduct tokens');
+    }
+
       let klingData;
       const formData = new FormData();
       formData.append('prompt', prompt);
@@ -767,26 +779,7 @@ return (
 </div>
 
    {/* Right Panel */}
-    <div className={`fixed right-4 top-20 bottom-4 bg-gray-800 rounded-lg shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${isRightPanelExpanded ? 'w-1/4' : 'w-[10%]'}`}>
-      <div className="absolute -left-10 top-1/2 transform -translate-y-1/2 z-10">
-        <Button
-          variant="ghost"
-          className="w-16 h-16 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center"
-          onClick={() => setIsRightPanelExpanded(!isRightPanelExpanded)}
-        >
-          {isRightPanelExpanded ? (
-            <>
-              <ChevronRight className="text-blue-500" size={32} />
-              <ChevronRight className="text-blue-500 -ml-5"  size={32} />
-            </>
-          ) : (
-            <>
-              <ChevronLeft className="text-blue-500" size={32} />
-              <ChevronLeft className="text-blue-500 -ml-5" size={32} />
-            </>
-          )}
-        </Button>
-      </div>
+    <div className='fixed right-4 top-20 bottom-4 bg-gray-800 rounded-lg shadow-lg transition-all duration-300 ease-in-out overflow-hidden'>
       
       <div className="h-full overflow-hidden">
         <div className="h-full p-4 overflow-y-auto scrollbar-hide">

@@ -3,6 +3,7 @@ import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import { redirect } from 'next/navigation'
 import { PrismaClient } from '@prisma/client'
 import NavBar from '@/components/NavBar';
+import { getUserSubscriptionPlan } from '@/lib/stripe';
 
 const prisma = new PrismaClient()
 
@@ -22,12 +23,18 @@ export default async function Page() {
     redirect("/auth-callback?origin=/dashboard");
   }
 
+  const subscriptionPlan = await getUserSubscriptionPlan()
+
+  if (!subscriptionPlan.isSubscribed) {
+    redirect('/pricing')
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 overflow-hidden">
-    <NavBar />
-    <main className="flex-grow overflow-hidden">
-      <VideoGenerationUI />
-    </main>
-  </div>
+      <NavBar />
+      <main className="flex-grow overflow-hidden">
+        <VideoGenerationUI />
+      </main>
+    </div>
   )
 }

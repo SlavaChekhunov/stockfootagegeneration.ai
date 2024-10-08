@@ -4,11 +4,13 @@ import { buttonVariants } from './ui/button'
 import {
   LoginLink,
   RegisterLink,
-  LogoutLink,
   getKindeServerSession,
 } from '@kinde-oss/kinde-auth-nextjs/server'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import UserAccountNav from './UserAccountNav'
+import MobileNav from './MobileNav'
+import TokenDisplayServer from './TokenDisplayServer'
 
 const NavBar = async () => {
   const { getUser } = getKindeServerSession()
@@ -29,6 +31,8 @@ const NavBar = async () => {
             className="mr-2"
           />
         </Link>
+
+        <MobileNav isAuth={!!user} />
 
           <div className='hidden items-center space-x-4 sm:flex'>
             {!user ? (
@@ -59,6 +63,7 @@ const NavBar = async () => {
               </>
             ) : (
               <>
+              <TokenDisplayServer />
                 <Link
                   href='/dashboard'
                   className={buttonVariants({
@@ -67,13 +72,15 @@ const NavBar = async () => {
                   })}>
                   Dashboard
                 </Link>
-                <LogoutLink
-                  className={buttonVariants({
-                    size: 'sm',
-                    variant: 'ghost',
-                  })}>
-                  Log out
-                </LogoutLink>
+                <UserAccountNav
+                  name={
+                    !user.given_name || !user.family_name
+                      ? 'Your Account'
+                      : `${user.given_name} ${user.family_name}`
+                  }
+                  email={user.email ?? ''}
+                  imageUrl={user.picture ?? ''}
+                />
               </>
             )}
           </div>

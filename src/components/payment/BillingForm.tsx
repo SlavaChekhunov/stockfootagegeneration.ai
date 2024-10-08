@@ -82,11 +82,11 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
           createStripeSession()
         }}>
         <Card>
-          <CardHeader>
+        <CardHeader>
             <CardTitle>Subscription Plan</CardTitle>
             <CardDescription>
               You are currently on the{' '}
-              <strong>{subscriptionPlan.name || 'Free'}</strong> plan.
+              <strong>{subscriptionPlan.isSubscribed ? subscriptionPlan.name : "You're not on any plan yet"}</strong>.
             </CardDescription>
           </CardHeader>
 
