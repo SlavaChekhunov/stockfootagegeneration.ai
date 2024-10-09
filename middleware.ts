@@ -32,5 +32,5 @@ async function middleware(request: NextRequest) {
 export default withAuth(middleware)
 
 export const config = {
-  matcher: ['/api/:path*', '/dashboard/:path*'],
+  matcher: ['/api/:path*', '/dashboard/:path*', "/auth-callback"],
 }
