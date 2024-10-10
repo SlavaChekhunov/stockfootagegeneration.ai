@@ -1,6 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
-// import VideoModal from './VideoModal'
+import { useState, useEffect, useCallback } from 'react'
 import ReviewCards from './ReviewCard';
 import VideoPreview from './VideoPreview';
 
@@ -12,9 +11,24 @@ interface VideoItem {
 
 export default function VideoGallery() {
   const [videoItems, setVideoItems] = useState<VideoItem[]>([])
+  const [displayedVideos, setDisplayedVideos] = useState<VideoItem[]>([])
   const [error, setError] = useState<string | null>(null)
-  // const [modalOpen, setModalOpen] = useState(false)
-  // const [currentVideoId, setCurrentVideoId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
+
+  const BATCH_SIZE = 10
+
+  const loadMoreVideos = useCallback(() => {
+    if (videoItems.length > displayedVideos.length) {
+      const nextBatch = videoItems.slice(
+        displayedVideos.length,
+        displayedVideos.length + BATCH_SIZE
+      );
+      setDisplayedVideos(prev => [...prev, ...nextBatch]);
+    } else {
+      setHasMore(false);
+    }
+  }, [videoItems, displayedVideos]);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -25,19 +39,35 @@ export default function VideoGallery() {
         }
         const data: VideoItem[] = await response.json();
         setVideoItems(data);
+        setDisplayedVideos(data.slice(0, BATCH_SIZE));
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching videos:', error);
         setError('Failed to load videos. Please try again later.');
+        setLoading(false);
       }
     };
 
     fetchVideos();
   }, [])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 100
+        && hasMore
+        && !loading
+      ) {
+        loadMoreVideos();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, loading, loadMoreVideos]);
+
   const openModal = (id: string) => {
-    // Commented out modal functionality
-    // setCurrentVideoId(id);
-    // setModalOpen(true);
     console.log('Modal opening disabled for video:', id);
   }
 
@@ -56,7 +86,7 @@ export default function VideoGallery() {
       <div className="absolute top-20 left-0 right-0 h-96 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-24">
-        {videoItems.map((item, index) => (
+        {displayedVideos.map((item, index) => (
           <VideoPreview
             key={item.id}
             item={item}
@@ -65,16 +95,8 @@ export default function VideoGallery() {
           />
         ))}
       </div>
-      {/* Commented out VideoModal
-      {currentVideoId !== null && (
-        <VideoModal 
-          isOpen={modalOpen} 
-          setIsOpen={setModalOpen}
-          initialVideoId={currentVideoId}
-          videos={videoItems}
-        />
-      )}
-      */}
+      {loading && <div>Loading...</div>}
+      {!hasMore && <div>No more videos to load</div>}
     </div>
   )
 }
