@@ -23,7 +23,7 @@ import { NextResponse } from 'next/server'
        }
 
        const subscriptionPlan = await getUserSubscriptionPlan()
-       const billingUrl = absoluteUrl('/dashboard/billing')
+       const billingUrl = absoluteUrl('/dashboard')
 
        if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
          const stripeSession = await stripe.billingPortal.sessions.create({
