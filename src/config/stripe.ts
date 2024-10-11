@@ -3,8 +3,9 @@ export const PLANS = [
     name: 'Starter',
     slug: 'starter',
     quota: 660,
+    tokens: 660, // Adding tokens field, same as quota
     price: {
-      amount: 19,
+      amount: 19.99,
       priceIds: {
         test: 'price_1Q4FAMIiqaIMbJTTD5EJ1lzO',
         production: '',
@@ -15,8 +16,9 @@ export const PLANS = [
     name: 'Pro',
     slug: 'pro',
     quota: 3000,
+    tokens: 3000, // Adding tokens field, same as quota
     price: {
-      amount: 39,
+      amount: 39.99,
       priceIds: {
         test: 'price_1Q4FD9IiqaIMbJTTZSiCYQt8',
         production: '',
@@ -26,9 +28,10 @@ export const PLANS = [
   {
     name: 'Premium',
     slug: 'premium',
-    quota: 10000, // Assuming a higher quota for the premium plan
+    quota: 10000,
+    tokens: 10000, // Adding tokens field, same as quota
     price: {
-      amount: 99,
+      amount: 99.99,
       priceIds: {
         test: 'price_1Q4FF3IiqaIMbJTTdvG6VSng',
         production: '',
