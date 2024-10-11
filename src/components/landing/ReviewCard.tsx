@@ -40,19 +40,19 @@ const ReviewCards: React.FC = () => {
   const reviews: Review[] = [
     {
       rating: 5,
-      quote: "Stock AI is incredible! I create stunning video footage for my social media content in minutes. As a content creator, I use it to test concepts before investing in expensive production. The control over camera movements and scenes is unparalleled. Highly recommend!",
+      quote: "Clip Craft AI is a game-changer! The AI-generated music feature is incredible that none of the other AI video tools offer. As a content creator, I use it to quickly produce footage for my Youtube shorts. I strongly recommend!",
       author: "Alex",
       verifiedPurchase: true
     },
     {
       rating: 5,
-      quote: "Amazing AI tool for video generation! I've created professional-looking stock footage for various locations and scenarios. The ability to add custom audio and adjust video length is game-changing. My followers are blown away by the quality!",
+      quote: "Cool tool for video generation! I like how I can add my own audio tracks or use the AI to generate music. I can add sound effects and music on top of the high-quality video outputs.",
       author: "Sophia",
       verifiedPurchase: true
     },
     {
       rating: 4,
-      quote: "Precise prompts yield fantastic results. It's incredibly fun! Took some practice to master scene composition, but once I got it right, the output was mind-blowing. The audio sync feature is particularly impressive. Stock AI's customer support was very helpful.",
+      quote: "Good input = good output. Very fun to use! Took me some time to get the right footage for my videos but once I got the right input it was amazing. Clip Craft AI is very responsive to my questions.",
       author: "Marcus",
       verifiedPurchase: true
     }

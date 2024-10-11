@@ -39,13 +39,11 @@ const HeroSection: React.FC = () => {
             <span className="laurel-text absolute z-10 text-sm font-semibold  text-black rounded-full pb-5 invert">
               #1 AI Video App
             </span>
-            <span className="laurel-stars absolute z-10 flex ">
-              <Star size={16}/>
-              <Star size={16}/>
-              <Star size={16}/>
-              <Star size={16}/>
-              <Star size={16}/>
-            </span>
+            <span className="laurel-stars absolute z-10 flex">
+            {[...Array(5)].map((_, index) => (
+              <Star key={index} size={16} fill="#fff" color="#fff" />
+            ))}
+          </span>
             <Image
               src={`https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/hero-section/laurel.svg`}
               alt="Laurel"
@@ -54,21 +52,20 @@ const HeroSection: React.FC = () => {
               className="laurel-img invert"
             />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center md:text-left">
-            <span className="text-blue-500 mr-2">🔥</span>
-            Stock AI, Spark your imagination
+          <h1 className="text-8xl md:text-7xl font-bold mb-6 text-center md:text-left">
+          Spark your imagination
           </h1>
           <p className="text-xl mb-8">
-            Create custom stock videos in minutes with Stock.ai. Say goodbye to expensive subscriptions and hours of searching for content. Our AI-powered platform generates high-quality, tailored stock footage for your social media, freelance projects, and more. Transform your ideas into stunning videos with just a few prompts.
+            Create custom video clips in minutes with Clip Craft AI. Perfect for anyone with a story to tell. Our AI-powered platform transforms your ideas into high-quality, tailored clips for social media, presentations, ads, and more. Bring your vision to life with just a few prompts – no video editing skills required.
           </p>
           <ul className="space-y-2 mb-8">
             <li className="flex items-center">
               <span className="text-orange-500 mr-2">🎬</span>
-              Generate custom stock footage from text descriptions in minutes
+              Generate custom video clips from text or images in minutes
             </li>
             <li className="flex items-center">
-              <span className="text-purple-500 mr-2">🖼️</span>
-              Turn still images into dynamic videos with image-to-video technology
+              <span className="text-purple-500 mr-2">🔊</span>
+              Add custom audio to your creations or create AI generated music
             </li>
             <li className="flex items-center">
               <span className="text-blue-500 mr-2">🎥</span>
