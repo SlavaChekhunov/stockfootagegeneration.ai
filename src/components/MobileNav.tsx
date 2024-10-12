@@ -24,10 +24,13 @@ const MobileNav = ({ isAuth }: { isAuth: boolean }) => {
 
   return (
     <div className='sm:hidden'>
-      <Menu
+      <button
         onClick={toggleOpen}
-        className='relative z-50 h-5 w-5 text-zinc-700'
-      />
+        className='relative z-50 p-2 rounded-full overflow-hidden group'
+      >
+        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-purple-500 via-blue-500 via-green-500 to-orange-500 animate-gradient-x"></span>
+        <Menu className='relative z-50 h-8 w-8 text-white' />
+      </button>
 
       {isOpen ? (
         <div className='fixed animate-in slide-in-from-top-5 fade-in-20 inset-0 z-0 w-full'>
@@ -36,9 +39,7 @@ const MobileNav = ({ isAuth }: { isAuth: boolean }) => {
               <>
                 <li>
                   <Link
-                    onClick={() =>
-                      closeOnCurrent('/sign-up')
-                    }
+                    onClick={() => closeOnCurrent('/sign-up')}
                     className='flex items-center w-full font-semibold text-green-600'
                     href='/sign-up'>
                     Get started
@@ -48,9 +49,7 @@ const MobileNav = ({ isAuth }: { isAuth: boolean }) => {
                 <li className='my-3 h-px w-full bg-gray-300' />
                 <li>
                   <Link
-                    onClick={() =>
-                      closeOnCurrent('/sign-in')
-                    }
+                    onClick={() => closeOnCurrent('/sign-in')}
                     className='flex items-center w-full font-semibold'
                     href='/sign-in'>
                     Sign in
@@ -59,9 +58,7 @@ const MobileNav = ({ isAuth }: { isAuth: boolean }) => {
                 <li className='my-3 h-px w-full bg-gray-300' />
                 <li>
                   <Link
-                    onClick={() =>
-                      closeOnCurrent('/pricing')
-                    }
+                    onClick={() => closeOnCurrent('/pricing')}
                     className='flex items-center w-full font-semibold'
                     href='/pricing'>
                     Pricing
@@ -72,9 +69,7 @@ const MobileNav = ({ isAuth }: { isAuth: boolean }) => {
               <>
                 <li>
                   <Link
-                    onClick={() =>
-                      closeOnCurrent('/dashboard')
-                    }
+                    onClick={() => closeOnCurrent('/dashboard')}
                     className='flex items-center w-full font-semibold'
                     href='/dashboard'>
                     Dashboard
