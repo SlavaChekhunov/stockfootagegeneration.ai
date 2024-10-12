@@ -85,8 +85,8 @@ export default function VideoGallery() {
       {/* Shadow Gradient Overlay */}
       <div className="absolute top-20 left-0 right-0 h-96 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-24">
-        {displayedVideos.map((item, index) => (
+      <div className="grid grid-cols-1 gap-4 pt-24 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:auto-rows-[200px]">
+      {displayedVideos.map((item, index) => (
           <VideoPreview
             key={item.id}
             item={item}
@@ -96,7 +96,6 @@ export default function VideoGallery() {
         ))}
       </div>
       {loading && <div>Loading...</div>}
-      {!hasMore && <div>No more videos to load</div>}
     </div>
   )
 }

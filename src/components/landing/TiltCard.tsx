@@ -36,7 +36,7 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, position }) => {
   };
 
   return (
-    <div className={`relative w-70 h-60 perspective-1000 ${positionClasses[position]}`}>
+    <div className={`relative w-full h-full perspective-1000 ${positionClasses[position]}`}>
       <div
         className={`${baseClasses} ${position !== 'center' ? 'transform-style-3d' : ''}`}
         style={tiltStyle}

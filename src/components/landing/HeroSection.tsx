@@ -34,7 +34,7 @@ const HeroSection: React.FC = () => {
       <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10"></div>
 
       <div className="relative z-20  mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col md:flex-row items-center justify-center text-white">
-        <div className="md:w-1/2 mb-10 md:mb-0">
+      <div className="w-full sm:w-3/4 lg:w-2/3 xl:w-1/2 mb-10 md:mb-0">
           <div className="laurel mb-6 flex items-center justify-center relative">
             <span className="laurel-text absolute z-10 text-sm font-semibold  text-black rounded-full pb-5 invert">
               #1 AI Video App
@@ -52,8 +52,8 @@ const HeroSection: React.FC = () => {
               className="laurel-img invert"
             />
           </div>
-          <h1 className="text-8xl md:text-7xl font-bold mb-6 text-center md:text-left">
-          Spark your imagination
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-left">
+            Spark your imagination
           </h1>
           <p className="text-xl mb-8">
             Create custom video clips in minutes with Clip Craft AI. Perfect for anyone with a story to tell. Our AI-powered platform transforms your ideas into high-quality, tailored clips for social media, presentations, ads, and more. Bring your vision to life with just a few prompts – no video editing skills required.

@@ -12,21 +12,21 @@ interface Review {
 const ReviewCard: React.FC<{ review: Review; position: 'left' | 'center' | 'right' }> = ({ review, position }) => {
   return (
     <TiltCard position={position}>
-      <div className="h-full flex flex-col justify-between p-6 bg-white text-gray-900 rounded-md border-2 border-orange-400">
+      <div className="h-full flex flex-col justify-between p-4 lg:p-6 bg-white text-gray-900 rounded-md border-2 border-orange-400">
         <div>
           <div className="flex mb-2">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 className={i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"}
-                size={20}
+                size={16}
               />
             ))}
           </div>
-          <p className="text-sm mb-4 flex-grow">&quot;{review.quote}&quot;</p>
+          <p className="text-xs lg:text-sm mb-4 flex-grow">&quot;{review.quote}&quot;</p>
         </div>
         <div className="flex items-center justify-between mt-4">
-          <span className="font-bold text-sm">{review.author}</span>
+          <span className="font-bold text-xs lg:text-sm">{review.author}</span>
           {review.verifiedPurchase && (
             <span className="text-xs text-gray-500">VERIFIED PURCHASE</span>
           )}
@@ -35,6 +35,7 @@ const ReviewCard: React.FC<{ review: Review; position: 'left' | 'center' | 'righ
     </TiltCard>
   );
 };
+
 
 const ReviewCards: React.FC = () => {
   const reviews: Review[] = [
@@ -61,10 +62,12 @@ const ReviewCards: React.FC = () => {
   const positions: ('left' | 'center' | 'right')[] = ['left', 'center', 'right'];
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto">
-      <div className="flex justify-center items-center space-x-20">
+    <div className="hidden lg:block relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col lg:flex-row justify-center items-center lg:items-stretch lg:space-x-4 xl:space-x-8 space-y-8 lg:space-y-0">
         {reviews.map((review, index) => (
-          <ReviewCard key={index} review={review} position={positions[index]} />
+          <div key={index} className="w-full lg:w-1/3">
+            <ReviewCard review={review} position={positions[index]} />
+          </div>
         ))}
       </div>
     </div>
