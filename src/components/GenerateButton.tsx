@@ -50,7 +50,7 @@ const GenerateButton: React.FC<{
               <span className={`absolute inset-0 w-full h-full ${!isDisabled() ? 'animate-gradient-x' : ''}`}></span>
               <span className="relative flex items-center justify-center">
                 <Play className="mr-2" size={16} />
-                Generate (~4m32s)
+                Generate (~7m32s)
               </span>
             </Button>
           </div>

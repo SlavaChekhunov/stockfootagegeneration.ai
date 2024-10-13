@@ -51,7 +51,7 @@ const VideoGenerationUI: React.FC = () => {
   const [userVideos, setUserVideos] = useState<Video[]>([]);
   const [imageS3Url, setImageS3Url] = useState<string | undefined>(undefined);
 
-  const GENERATION_TIME = 263; 
+  const GENERATION_TIME = 452; 
   const PROGRESS_INTERVAL = 2500; 
   const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
@@ -484,7 +484,7 @@ const VideoGenerationUI: React.FC = () => {
   
     const updateProgress = () => {
       const elapsedTime = (Date.now() - startTime) / 1000;
-      const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 100), 97);
+      const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 100), 99);
       setProgress(newProgress);
     };
   
@@ -654,7 +654,6 @@ return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
     {/* Left Panel */}
     <div className="w-1/4 p-6 border-r border-gray-700">
-        <h1 className="text-2xl font-bold mb-6">KLING <span className="text-blue-400">Creative Space</span></h1>
         <div className="mb-6 flex flex-wrap">
           <Button
             variant="ghost"
@@ -772,7 +771,7 @@ return (
     ) : (
       <div className="text-center">
         <Play className="mx-auto mb-4" size={48} />
-        <p>Unlock your creative potential and experience the magic of KLING AI right now!</p>
+        <p>Unlock your creative potential and experience the magic of Clip Craft AI right now!</p>
       </div>
     )}
   </div>
