@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { PrismaClient } from '@prisma/client'
 import NavBar from '@/components/NavBar';
 import { getUserSubscriptionPlan } from '@/lib/stripe';
+import { TokenProvider } from '@/contexts/TokenContext';
 
 const prisma = new PrismaClient()
 
@@ -29,11 +30,16 @@ export default async function Page() {
     redirect('/pricing')
   }
 
+  const initialTokens = subscriptionPlan.tokens || 0;
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 overflow-hidden">
       <NavBar />
       <main className="flex-grow overflow-hidden">
-        <VideoGenerationUI />
+      <TokenProvider initialTokens={initialTokens}>
+      <VideoGenerationUI />
+      {/* Other components */}
+    </TokenProvider>
       </main>
     </div>
   )

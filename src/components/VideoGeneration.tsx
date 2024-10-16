@@ -7,6 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Play, ChevronDown, Upload, Smartphone, Monitor} from 'lucide-react'
 import { useState, useCallback,useEffect } from 'react'
 import { useDropzone, FileRejection } from 'react-dropzone';
+import { useTokens } from '@/contexts/TokenContext';
+
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
@@ -25,9 +27,6 @@ const VideoGenerationUI: React.FC = () => {
   const [status, setStatus] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [selectedVideoType, setSelectedVideoType] = useState('All Videos');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [generationPhase, setGenerationPhase] = useState<'idle' | 'submitting' | 'generating'>('idle');
   const [image, setImage] = useState<File | string | null>(null);
   const [isSoundOn, setIsSoundOn] = useState(false);
   const [videoStatus, setVideoStatus] = useState('');
@@ -50,6 +49,52 @@ const VideoGenerationUI: React.FC = () => {
 
   const [userVideos, setUserVideos] = useState<Video[]>([]);
   const [imageS3Url, setImageS3Url] = useState<string | undefined>(undefined);
+
+  const [isGenerating, setIsGenerating] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('isGenerating') === 'true';
+    }
+    return false;
+  });
+  const [progress, setProgress] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return parseInt(localStorage.getItem('generationProgress') || '0', 10);
+    }
+    return 0;
+  });
+  const [generationPhase, setGenerationPhase] = useState<'idle' | 'submitting' | 'generating'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('generationPhase') as 'idle' | 'submitting' | 'generating') || 'idle';
+    }
+    return 'idle';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isGenerating', isGenerating.toString());
+      localStorage.setItem('generationProgress', progress.toString());
+      localStorage.setItem('generationPhase', generationPhase);
+    }
+  }, [isGenerating, progress, generationPhase]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedIsGenerating = localStorage.getItem('isGenerating') === 'true';
+      const storedProgress = parseInt(localStorage.getItem('generationProgress') || '0', 10);
+      const storedPhase = localStorage.getItem('generationPhase') as 'idle' | 'submitting' | 'generating';
+  
+      if (storedIsGenerating) {
+        setIsGenerating(true);
+        setProgress(storedProgress);
+        setGenerationPhase(storedPhase);
+        // You might want to restart the generation process or show a message to the user
+        // that the generation was interrupted and they might need to start over
+      }
+    }
+  }, []);
+
+
+  const { updateTokens } = useTokens();
 
   const GENERATION_TIME = 452; 
   const PROGRESS_INTERVAL = 2500; 
@@ -323,21 +368,32 @@ const VideoGenerationUI: React.FC = () => {
     setGenerationPhase('submitting');
     setVideoStatus('');
     setAudioStatus('');
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isGenerating', 'true');
+      localStorage.setItem('generationProgress', '0');
+      localStorage.setItem('generationPhase', 'submitting');
+    }
+  
   
     const startTime = Date.now();
   
     try {
         // Deduct tokens
-    const deductResponse = await fetch('/api/deduct-tokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tokensToDeduct: 50 }),
-    });
+        const deductResponse = await fetch('/api/deduct-tokens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tokensToDeduct: 50 }),
+        });
 
-    if (!deductResponse.ok) {
-      const errorData = await deductResponse.json();
-      throw new Error(errorData.message || 'Failed to deduct tokens');
-    }
+        if (deductResponse.ok) {
+          const { tokens: updatedTokens } = await deductResponse.json();
+          // Update the token count in the context
+          updateTokens(updatedTokens);
+        } else {
+          const errorData = await deductResponse.json();
+          throw new Error(errorData.message || 'Failed to deduct tokens');
+        }
 
       let klingData;
       const formData = new FormData();
@@ -486,6 +542,9 @@ const VideoGenerationUI: React.FC = () => {
       const elapsedTime = (Date.now() - startTime) / 1000;
       const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 100), 99);
       setProgress(newProgress);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('generationProgress', newProgress.toString());
+      }
     };
   
     progressInterval = setInterval(updateProgress, PROGRESS_INTERVAL);

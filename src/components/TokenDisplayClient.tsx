@@ -1,12 +1,12 @@
 'use client'
 
-import { useTokens } from '@/contexts/TokenContext';
+import { TokenProvider, useTokens } from '@/contexts/TokenContext';
 
-interface TokenDisplayClientProps {
+interface TokenDisplayProps {
   initialPlan: string;
 }
 
-const TokenDisplayClient: React.FC<TokenDisplayClientProps> = ({ initialPlan }) => {
+const TokenDisplay: React.FC<TokenDisplayProps> = ({ initialPlan }) => {
   const { tokens } = useTokens();
 
   return (
@@ -16,6 +16,19 @@ const TokenDisplayClient: React.FC<TokenDisplayClientProps> = ({ initialPlan }) 
       </div>
       <div className="text-sm font-medium">{initialPlan}</div>
     </div>
+  );
+};
+
+interface TokenDisplayClientProps {
+  initialTokens: number;
+  initialPlan: string;
+}
+
+const TokenDisplayClient: React.FC<TokenDisplayClientProps> = ({ initialTokens, initialPlan }) => {
+  return (
+    <TokenProvider initialTokens={initialTokens}>
+      <TokenDisplay initialPlan={initialPlan} />
+    </TokenProvider>
   );
 };
 

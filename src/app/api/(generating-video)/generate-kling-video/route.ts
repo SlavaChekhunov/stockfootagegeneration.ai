@@ -20,11 +20,11 @@ export async function POST(request: Request) {
         prompt,
         aspect_ratio: aspectRatio,
         negative_prompt: negativePrompt,
-        professional_mode: false,
+        professional_mode: true,
         creativity: 0.5,
         duration: 5,
         image_url: imageUrl || '',
-        version: '1.0',
+        version: '1.5',
         webhook_config: {
           endpoint: '',
           secret: ''

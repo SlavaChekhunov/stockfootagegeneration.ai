@@ -1,10 +1,11 @@
 'use client'
 
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface TokenContextType {
   tokens: number;
   updateTokens: (newTokens: number) => void;
+  refreshTokens: () => Promise<void>;
 }
 
 const TokenContext = createContext<TokenContextType | undefined>(undefined);
@@ -21,8 +22,20 @@ export const TokenProvider: React.FC<TokenProviderProps> = ({ children, initialT
     setTokens(newTokens);
   };
 
+  const refreshTokens = useCallback(async () => {
+    try {
+      const response = await fetch('/api/get-users-tokens');
+      if (response.ok) {
+        const data = await response.json();
+        setTokens(data.tokens);
+      }
+    } catch (error) {
+      console.error('Failed to refresh tokens:', error);
+    }
+  }, []);
+
   return (
-    <TokenContext.Provider value={{ tokens, updateTokens }}>
+    <TokenContext.Provider value={{ tokens, updateTokens, refreshTokens }}>
       {children}
     </TokenContext.Provider>
   );

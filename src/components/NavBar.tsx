@@ -10,11 +10,19 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import UserAccountNav from './UserAccountNav'
 import MobileNav from './MobileNav'
-import TokenDisplayServer from './TokenDisplayServer'
+import TokenDisplayNavBar from './TokenDisplayNavBar'
+import { TokenProvider } from '@/contexts/TokenContext'
+import { getUserSubscriptionPlan } from '@/lib/stripe'
 
 const NavBar = async () => {
   const { getUser } = getKindeServerSession()
   const user = await getUser()
+
+  let initialTokens = 0
+  if (user) {
+    const subscriptionPlan = await getUserSubscriptionPlan()
+    initialTokens = subscriptionPlan.tokens || 0
+  }
 
   return (
     <nav className='sticky h-14 inset-x-0 top-0 z-30 w-full  bg-transparent backdrop-blur-sm transition-all text-white'>
@@ -63,7 +71,9 @@ const NavBar = async () => {
               </>
             ) : (
               <>
-              <TokenDisplayServer />
+              <TokenProvider initialTokens={initialTokens}>
+                  <TokenDisplayNavBar />
+                </TokenProvider>
                 <Link
                   href='/dashboard'
                   className={buttonVariants({
