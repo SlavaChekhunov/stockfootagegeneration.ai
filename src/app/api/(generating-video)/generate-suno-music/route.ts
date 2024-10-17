@@ -22,10 +22,13 @@ export async function POST(request: Request) {
 
   try {
     const response = await fetch(url, options)
+    if (!response.ok) {
+      throw new Error(`Suno API responded with status: ${response.status}`);
+    }
     const data = await response.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    console.error('Error generating Suno music:', error)
+    return NextResponse.json({ error: 'Failed to generate music' }, { status: 500 })
   }
 }

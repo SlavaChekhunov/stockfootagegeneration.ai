@@ -18,20 +18,36 @@ import { Video } from '../types/Video';
 import { toast } from "react-toastify"
 import Image from "next/image"
 
+const saveToLocalStorage = (key: string, value: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+};
+
+const loadFromLocalStorage = (key: string, defaultValue: any) => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : defaultValue;
+  }
+  return defaultValue;
+};
+
 
 
 const VideoGenerationUI: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('text-to-video');
-  const [prompt, setPrompt] = useState('');
-  const [negativePrompt, setNegativePrompt] = useState("");
-  const [status, setStatus] = useState('');
+  const [activeTab, setActiveTab] = useState<'text-to-video' | 'image-to-video'>(() => loadFromLocalStorage('activeTab', 'text-to-video'));
+  const [prompt, setPrompt] = useState<string>(() => loadFromLocalStorage('prompt', ''));
+  const [negativePrompt, setNegativePrompt] = useState<string>(() => loadFromLocalStorage('negativePrompt', ''));
+  const [image, setImage] = useState<File | string | null>(() => loadFromLocalStorage('image', null));
+  const [aspectRatio, setAspectRatio] = useState<string>(() => loadFromLocalStorage('aspectRatio', '16:9'));
+  // const [status, setStatus] = useState<string>(() => loadFromLocalStorage('status', ''));
   const [videoUrl, setVideoUrl] = useState('');
   const [selectedVideoType, setSelectedVideoType] = useState('All Videos');
-  const [image, setImage] = useState<File | string | null>(null);
+  // const [image, setImage] = useState<File | string | null>(null);
   const [isSoundOn, setIsSoundOn] = useState(false);
-  const [videoStatus, setVideoStatus] = useState('');
-  const [audioStatus, setAudioStatus] = useState('');
-  const [aspectRatio, setAspectRatio] = useState('16:9');
+  // const [videoStatus, setVideoStatus] = useState('');
+  // const [audioStatus, setAudioStatus] = useState('');
+  // const [aspectRatio, setAspectRatio] = useState('16:9');
 
   const [songDescription, setSongDescription] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -52,43 +68,47 @@ const VideoGenerationUI: React.FC = () => {
   const [useTextToClipEndFrame, setUseTextToClipEndFrame] = useState(false);
 
   const [userVideos, setUserVideos] = useState<Video[]>([]);
-  const [imageS3Url, setImageS3Url] = useState<string | undefined>(undefined);
+  // const [imageS3Url, setImageS3Url] = useState<string | undefined>(undefined);
 
-
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     localStorage.setItem('isGenerating', isGenerating.toString());
-  //     localStorage.setItem('generationProgress', progress.toString());
-  //     localStorage.setItem('generationPhase', generationPhase);
-  //   }
-  // }, [isGenerating, progress, generationPhase]);
-
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const storedIsGenerating = localStorage.getItem('isGenerating') === 'true';
-  //     const storedProgress = parseInt(localStorage.getItem('generationProgress') || '0', 10);
-  //     const storedPhase = localStorage.getItem('generationPhase') as 'idle' | 'submitting' | 'generating';
   
-  //     if (storedIsGenerating) {
-  //       setIsGenerating(true);
-  //       setProgress(storedProgress);
-  //       setGenerationPhase(storedPhase);
-  //       // You might want to restart the generation process or show a message to the user
-  //       // that the generation was interrupted and they might need to start over
-  //     }
-  //   }
-  // }, []);
+  const updatePrompt = (value: string) => {
+    setPrompt(value);
+    saveToLocalStorage('prompt', value);
+  };
+  
+  const updateNegativePrompt = (value: string) => {
+    setNegativePrompt(value);
+    saveToLocalStorage('negativePrompt', value);
+  };
 
+  // const updateStatus = (value: string) => {
+  //   setStatus(value);
+  //   saveToLocalStorage('status', value);
+  // };
+  
+  const updateImage = (value: File | string | null) => {
+    setImage(value);
+    if (value instanceof File) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        saveToLocalStorage('image', reader.result);
+      };
+      reader.readAsDataURL(value);
+    } else {
+      saveToLocalStorage('image', value);
+    }
+  };
 
-  const { refreshTokens, tokens } = useTokens();
+  const { refreshTokens } = useTokens();
 
-  const GENERATION_TIME = 452; 
-  const PROGRESS_INTERVAL = 2500; 
+  // const GENERATION_TIME = 452; 
+  // const PROGRESS_INTERVAL = 2500; 
   const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
   const onDropImage = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
     if (acceptedFiles.length > 0) {
-      setImage(acceptedFiles[0]);
+      // setImage(acceptedFiles[0]);
+      updateImage(acceptedFiles[0]);
     } else if (fileRejections.length > 0) {
       console.error('File rejected:', fileRejections[0].errors);
       // You might want to set an error state here to display to the user
@@ -157,7 +177,7 @@ const VideoGenerationUI: React.FC = () => {
           className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white pr-16"
           placeholder="Got a vision? Let's bring it to life. Type away or explore the KLING AI Best Practices"
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => updatePrompt(e.target.value)}
           maxLength={2500}
         />
         <span className="absolute bottom-2 right-2 text-sm text-gray-400">
@@ -218,7 +238,7 @@ const VideoGenerationUI: React.FC = () => {
           className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white pr-16"
           placeholder="List the types of content you don't want to see in the video. Examples: blur, distortion, disfigurement, low quality, grainy, warped, pixelated, unclear, morphing, deformed, ugly."
           value={negativePrompt}
-          onChange={(e) => setNegativePrompt(e.target.value)}
+          onChange={(e) => updateNegativePrompt(e.target.value)}
           maxLength={2500}
         />
         <span className="absolute bottom-2 right-2 text-sm text-gray-400">
@@ -322,7 +342,7 @@ const VideoGenerationUI: React.FC = () => {
           className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white pr-16"
           placeholder="Got a vision? Let's bring it to life. Type away or explore the KLING AI Best Practices"
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => updatePrompt(e.target.value)}
           maxLength={2500}
         />
         <span className="absolute bottom-2 right-2 text-sm text-gray-400">
@@ -338,7 +358,7 @@ const VideoGenerationUI: React.FC = () => {
           className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white pr-16"
           placeholder="List the types of content you don't want to see in the video."
           value={negativePrompt}
-          onChange={(e) => setNegativePrompt(e.target.value)}
+          onChange={(e) => updateNegativePrompt(e.target.value)}
           maxLength={1000}
         />
         <span className="absolute bottom-2 right-2 text-sm text-gray-400">
@@ -348,265 +368,176 @@ const VideoGenerationUI: React.FC = () => {
     </>
   );
 
+  // Add this new function to handle token refunds
+  const refundTokens = async (tokensToRefund: number) => {
+    const response = await fetch('/api/refund-tokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokensToRefund }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to refund tokens');
+    }
+
+    await refreshTokens(); // Refresh the token count after refund
+  };
+
   const handleSubmit = async () => {
-    console.log('handleSubmit started. Current tokens:', tokens);
-    setIsGenerating(true);
-    setProgress(0);
-    setGenerationPhase('submitting');
-    setVideoStatus('');
-    setAudioStatus('');
-  
+      // Clear previous video and reset states
+      setVideoUrl('');
+      setIsGenerating(true);
+      setProgress(0);
+      setGenerationPhase('submitting');
+    // setStatus('');
+    // updateStatus('PENDING');
+
+     // Clear localStorage
+    localStorage.clear();
   
     const startTime = Date.now();
+    const GENERATION_TIME = 452000;
+    const TOKENS_TO_DEDUCT = 50;  
   
     try {
-      console.log('Attempting to deduct tokens...');
+      console.log('Deducting tokens');
+      // Deduct tokens
       const deductResponse = await fetch('/api/deduct-tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokensToDeduct: 50 }),
+        body: JSON.stringify({ tokensToDeduct: TOKENS_TO_DEDUCT }),
       });
-
+  
       if (!deductResponse.ok) {
         const errorData = await deductResponse.json();
         throw new Error(errorData.message || 'Failed to deduct tokens');
       }
-
-      console.log('Tokens deducted successfully. Refreshing tokens...');
-      // Refresh tokens after deduction
+  
       await refreshTokens();
-      console.log('Tokens refreshed. New token count:', tokens);
-
-      let klingData;
+  
+      console.log('Preparing form data');
       const formData = new FormData();
       formData.append('prompt', prompt);
       formData.append('aspect_ratio', aspectRatio);
-      formData.append('duration', '5');
+      formData.append('activeTab', activeTab);
+      if (image instanceof File) {
+        console.log('Appending image file:', image.name);
+        formData.append('imageUrl', image);
+      } else if (typeof image === 'string') {
+        console.log('Appending image URL:', image);
+        formData.append('imageUrl', image);
+      }
+      formData.append('negative_prompt', negativePrompt);
+      formData.append('useEndFrame', useEndFrame.toString());
+      formData.append('isSoundOn', isSoundOn.toString());
+      formData.append('songDescription', songDescription || '');
   
-      if (activeTab === 'text-to-clip') {
-        // ... (text-to-clip logic remains the same)
-      } else if (activeTab === 'image-to-video' || activeTab === 'text-to-video') {
-        if (activeTab === 'image-to-video') {
-          if (!image) {
-            throw new Error('Image is required for image-to-video');
-          }
-          
-          
-          // Upload the main image
-          const imageFormData = new FormData();
-          imageFormData.append('image', image);
-          const imageUploadResponse = await fetch('/api/upload-image-to-s3', {
-            method: 'POST',
-            body: imageFormData,
-          });
-
-          if (!imageUploadResponse.ok) {
-            const errorData = await imageUploadResponse.json();
-            throw new Error(`Failed to upload image: ${errorData.error || 'Unknown error'}`);
-          }
-
-          const { imageUrl } = await imageUploadResponse.json();
-          formData.append('imageUrl', imageUrl);
-          formData.append('negative_prompt', negativePrompt);
-          setImageS3Url(imageUrl);  // Store the S3 URL
-          console.log('Image S3 URL set in handleSubmit:', imageUrl);
+      console.log('Sending request to start-video-generation');
+      const response = await fetch('/api/start-video-generation', {
+        method: 'POST',
+        body: formData,
+      });
   
-          // Upload the end frame if it exists
-          if (useEndFrame && endFrame) {
-            const endFrameFormData = new FormData();
-            endFrameFormData.append('image', endFrame);
-            const endFrameUploadResponse = await fetch('/api/upload-image-to-s3', {
-              method: 'POST',
-              body: endFrameFormData,
-            });
-  
-            if (!endFrameUploadResponse.ok) {
-              const errorData = await endFrameUploadResponse.json();
-              throw new Error(`Failed to upload end frame: ${errorData.error || 'Unknown error'}`);
-            }
-  
-            const { imageUrl: endFrameUrl } = await endFrameUploadResponse.json();
-            formData.append('endFrameUrl', endFrameUrl);
-          }
-        }
-  
-        const klingResponse = await fetch('/api/generate-kling-video', {
-          method: 'POST',
-          body: formData,
-        });
-  
-        if (!klingResponse.ok) {
-          const errorData = await klingResponse.json();
-          throw new Error(`Kling API failed: ${errorData.error || 'Unknown error'}`);
-        }
-  
-        klingData = await klingResponse.json();
+      if (!response.ok) {
+        throw new Error('Failed to start video generation');
       }
   
-      console.log('Kling API response:', klingData);
-  
-  
-      // Music generation
-      let musicTaskId = null;
-      if (isSoundOn) {
-        const musicPrompt = activeTab === 'text-to-clip' ? songDescription : prompt;
-        const musicResponse = await fetch('/api/generate-suno-music', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: musicPrompt }),
-        });
+      const { videoId } = await response.json();
+      console.log('Received videoId:', videoId);
+      setGenerationPhase('generating');
 
-        if (!musicResponse.ok) {
-          throw new Error('Suno API failed');
-        }
+      // Start progress simulation
+      const progressInterval = setInterval(() => {
+        const elapsedTime = Date.now() - startTime;
+        const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 99), 99);
+        setProgress(newProgress);
+      }, 1000);
 
-        const musicData = await musicResponse.json();
-        console.log('Suno API response:', musicData);
-        musicTaskId = musicData.data.task_id;
-      }
+      console.log('Starting to poll generation status');
+      await pollGenerationStatus(videoId, progressInterval, TOKENS_TO_DEDUCT);
+
   
-     
-      if (klingData.taskId) {
-        setGenerationPhase('generating');
-        setStatus('Generating video...');
-        const result = await checkStatus(klingData.taskId, musicTaskId, startTime, 'kling');
-        if (result.videoUrl) {
-          console.log('Video generated successfully:', result.videoUrl);
-          
-          if (result.musicUrl) {
-            // Combine video and audio
-            const combineResponse = await fetch('/api/combine-video-audio', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ videoUrl: result.videoUrl, audioUrl: result.musicUrl })
-            });
-  
-            if (!combineResponse.ok) {
-              throw new Error('Failed to combine video and audio');
-            }
-  
-            const combineData = await combineResponse.json();
-            console.log('Combined video URL:', combineData.videoUrl);
-            await saveVideoToDatabase(combineData.videoUrl, imageS3Url);
-            setVideoUrl(combineData.videoUrl);
-          } else {
-            await saveVideoToDatabase(result.videoUrl, imageS3Url);
-            setVideoUrl(result.videoUrl);
-          }
-          
-          await fetchUserVideos();
-        }
-      } else if (klingData.videoUrl) {
-        console.log('Video generated successfully:', klingData.videoUrl);
-        await saveVideoToDatabase(klingData.videoUrl, imageS3Url);
-        setVideoUrl(klingData.videoUrl);
-        await fetchUserVideos();
-      } else {
-        throw new Error('No task ID or video URL received from Kling');
-      }
     } catch (error) {
       console.error('Error generating video:', error);
-      setStatus('Error generating video: ' + (error as Error).message);
+      toast.error(`Error generating video: ${(error as Error).message}`);
+      // Refund tokens if the error occurred after deduction
+      try {
+        await refundTokens(TOKENS_TO_DEDUCT);
+        toast.info(`${TOKENS_TO_DEDUCT} tokens have been refunded due to the error.`);
+      } catch (refundError) {
+        console.error('Error refunding tokens:', refundError);
+        toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
+      }
     } finally {
       setIsGenerating(false);
     }
   };
   
+  
 
-
-  const checkStatus = async (videoTaskId: string, musicTaskId: string | null, startTime: number, api: 'kling') => {
-    console.log('Image S3 URL before saving to database (in checkStatus):', imageS3Url);
-    let videoCompleted = false;
-    let musicCompleted = musicTaskId === null;
-    let progressInterval: NodeJS.Timeout | null = null;
-  
-    const updateProgress = () => {
-      const elapsedTime = (Date.now() - startTime) / 1000;
-      const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 100), 99);
-      setProgress(newProgress);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('generationProgress', newProgress.toString());
-      }
-    };
-  
-    progressInterval = setInterval(updateProgress, PROGRESS_INTERVAL);
-  
-    let videoUrl: string | null = null;
-    let musicUrl: string | null = null;
-  
-    while (!videoCompleted || !musicCompleted) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
+  const pollGenerationStatus = async (videoId: string, progressInterval: NodeJS.Timeout, tokensToRefund: number) => {
+    const pollInterval = setInterval(async () => {
       try {
-        if (!videoCompleted) {
-          const videoResponse = await fetch(`/api/check-${api}-status?taskId=${videoTaskId}`);
-          if (!videoResponse.ok) {
-            throw new Error(`HTTP error! status: ${videoResponse.status}`);
-          }
-          const videoData = await videoResponse.json();
-          console.log('Video status:', videoData);
-  
-         
-        if (videoData.status === 'completed') {
-          videoCompleted = true;
-          videoUrl = videoData.videoUrl; // This will now be the watermark-free URL
-        } else if (videoData.status === 'failed') {
-          throw new Error('Video generation failed');
-        }
-        setVideoStatus(`Video: ${videoData.status}`);
-      }
-  
-        if (!musicCompleted && musicTaskId) {
-          const musicResponse = await fetch(`/api/check-suno-status?taskId=${musicTaskId}`);
-          if (!musicResponse.ok) {
-            throw new Error(`HTTP error! status: ${musicResponse.status}`);
-          }
-          const musicData = await musicResponse.json();
-          console.log('Music status:', musicData);  // Add this line
-  
-          if (musicData.status === 'completed') {
-            musicCompleted = true;
-            musicUrl = musicData.musicUrl;
-          } else if (musicData.status === 'Failed' || musicData.status === 'failed') {
-            throw new Error('Music generation failed');
-          }
-          setAudioStatus(`Audio: ${musicData.status}`);
+        const response = await fetch(`/api/check-video-status?id=${videoId}`);
+        if (!response.ok) {
+          throw new Error('Failed to check generation status');
         }
   
-        setStatus(`${videoStatus}${musicTaskId ? `, ${audioStatus}` : ''}`);
+        const data = await response.json();
   
-        if (videoCompleted && musicCompleted) {
-          if (progressInterval) clearInterval(progressInterval);
+        if (data.status === 'SUCCESS') {
+          clearInterval(pollInterval);
+          clearInterval(progressInterval);
+          setVideoUrl(data.url);
           setProgress(100);
-          setStatus('Video and music generated successfully!');
+          setIsGenerating(false);
+          await fetchUserVideos();
+  
+          // Clear localStorage and reset state
+          localStorage.clear();
+          setPrompt('');
+          setNegativePrompt('');
+          setImage(null);
+          setAspectRatio('16:9');
+  
+          toast.success('Video generated successfully!');
           
-          if (videoUrl && musicUrl) {
-            // Combine video and audio
-            const combineResponse = await fetch('/api/combine-video-audio', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ videoUrl, audioUrl: musicUrl })
-            });
-        
-            if (!combineResponse.ok) {
-              throw new Error('Failed to combine video and audio');
-            }
-        
-           
-        const combineData = await combineResponse.json();
-        return { videoUrl: combineData.videoUrl, musicUrl: musicUrl };
-      } else {
-            return { videoUrl: videoUrl || '' };
+        } else if (data.status === 'FAILED') {
+          clearInterval(pollInterval);
+          clearInterval(progressInterval);
+          setIsGenerating(false);
+          toast.error('Video generation failed');
+  
+          // Refund tokens
+          try {
+            await refundTokens(tokensToRefund);
+            toast.info(`${tokensToRefund} tokens have been refunded due to the failed generation.`);
+          } catch (refundError) {
+            console.error('Error refunding tokens:', refundError);
+            toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
           }
+        } else {
+          // Still in progress
+          toast.info(`Video generation in progress: ${data.status}`);
         }
       } catch (error) {
-        if (progressInterval) clearInterval(progressInterval);
-        setStatus('Error checking status: ' + (error as Error).message);
-        console.error('Error in checkStatus:', error);
-        throw error;
+        clearInterval(pollInterval);
+        clearInterval(progressInterval);
+        console.error('Error checking generation status:', error);
+        toast.error(`Error checking generation status: ${(error as Error).message}`);
+        setIsGenerating(false);
+  
+        // Refund tokens in case of error
+        try {
+          await refundTokens(tokensToRefund);
+          toast.info(`${tokensToRefund} tokens have been refunded due to the error.`);
+        } catch (refundError) {
+          console.error('Error refunding tokens:', refundError);
+          toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
+        }
       }
-    }
-    setIsGenerating(false);
-    return { videoUrl: '', musicUrl: '' };
+    }, 5000);
   };
 
 
@@ -627,63 +558,103 @@ const VideoGenerationUI: React.FC = () => {
 
   useEffect(() => {
     fetchUserVideos(selectedVideoType);
+    
+    const savedImage = loadFromLocalStorage('image', null);
+    if (savedImage && savedImage.startsWith('data:')) {
+      fetch(savedImage)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], "image.png", { type: "image/png" });
+          setImage(file);
+        });
+    }
   }, [selectedVideoType]);
 
-useEffect(() => {
-  console.log('imageS3Url updated:', imageS3Url);
-}, [imageS3Url]);
+  // useEffect(() => {
+  //   const fetchInitialStatus = async () => {
+  //     try {
+  //       const response = await fetch('/api/get-latest-video-status');
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         if (data.status === 'SUCCESS') {
+  //           // Clear localStorage and reset state
+  //           localStorage.clear();
+  //           setPrompt('');
+  //           setNegativePrompt('');
+  //           setImage(null);
+  //           setAspectRatio('16:9');
+  //           setVideoUrl(data.url);
+  //         } else {
+  //           // Load from localStorage only if the latest video is not successful
+  //           setPrompt(loadFromLocalStorage('prompt', ''));
+  //           setNegativePrompt(loadFromLocalStorage('negativePrompt', ''));
+  //           setImage(loadFromLocalStorage('image', null));
+  //           setAspectRatio(loadFromLocalStorage('aspectRatio', '16:9'));
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching initial video status:', error);
+  //     }
+  //   };
+  
+  //   fetchInitialStatus();
+  // }, []);
+
+// useEffect(() => {
+//   console.log('imageS3Url updated:', imageS3Url);
+// }, [imageS3Url]);
 
 
-const saveVideoToDatabase = async (url: string, sourceImageUrl: string | undefined) => {
-  try {
-    console.log('Saving video to database with sourceImageUrl:', sourceImageUrl); // Add this line
+// const saveVideoToDatabase = async (url: string, sourceImageUrl: string | undefined) => {
+//   try {
+//     console.log('Saving video to database with sourceImageUrl:', sourceImageUrl); // Add this line
 
-    // First, save the video to S3
-    const saveToS3Response = await fetch('/api/save-video-to-s3', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoUrl: url }),
-    });
+//     // First, save the video to S3
+//     const saveToS3Response = await fetch('/api/save-video-to-s3', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ videoUrl: url }),
+//     });
 
-    if (!saveToS3Response.ok) {
-      throw new Error('Failed to save video to S3');
-    }
+//     if (!saveToS3Response.ok) {
+//       throw new Error('Failed to save video to S3');
+//     }
 
-    const { s3Url } = await saveToS3Response.json();
-    console.log('Video saved to S3:', s3Url);
+//     const { s3Url } = await saveToS3Response.json();
+//     console.log('Video saved to S3:', s3Url);
 
-    const isImageToVideo = activeTab === 'image-to-video';
+//     const isImageToVideo = activeTab === 'image-to-video';
 
-    const requestBody = {
-      name: `Video ${new Date().toISOString()}`,
-      prompt,
-      aspectRatio,
-      url: s3Url,
-      status: 'SUCCESS',
-      sourceType: isImageToVideo ? 'IMAGE' : 'TEXT',
-      sourceImageUrl,
-    };
+//     const requestBody = {
+//       name: `Video ${new Date().toISOString()}`,
+//       prompt,
+//       aspectRatio,
+//       url: s3Url,
+//       status: 'SUCCESS',
+//       sourceType: isImageToVideo ? 'IMAGE' : 'TEXT',
+//       sourceImageUrl,
+//     };
 
-    console.log('Request body for saving to database:', requestBody); // Add this line
+//     console.log('Request body for saving to database:', requestBody); // Add this line
 
-    const response = await fetch('/api/getUserVideos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
+//     const response = await fetch('/api/getUserVideos', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(requestBody),
+//     });
 
-    if (response.ok) {
-      const savedVideo = await response.json();
-      console.log('Video saved to database:', savedVideo);
-      setUserVideos(prevVideos => [savedVideo, ...prevVideos]);
-    } else {
-      throw new Error('Failed to save video');
-    }
-  } catch (error: unknown) {
-    console.error('Error saving video to database:', error);
-    toast.error(`Error saving video: ${(error as Error).message}`);
-  }
-};
+//     if (response.ok) {
+//       const savedVideo = await response.json();
+//       console.log('Video saved to database:', savedVideo);
+//       setUserVideos(prevVideos => [savedVideo, ...prevVideos]);
+//     } else {
+//       throw new Error('Failed to save video');
+//     }
+//   } catch (error: unknown) {
+//     console.error('Error saving video to database:', error);
+//     toast.error(`Error saving video: ${(error as Error).message}`);
+//   }
+// };
 
 const handleVideoTypeChange = (type: string) => {
   setSelectedVideoType(type);
@@ -762,59 +733,56 @@ return (
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <p className="mt-4 text-sm text-gray-400">{status}</p>
+        {/* <p className="mt-4 text-sm text-gray-400">{status}</p> */}
       </div>
     
     {/* Middle Section */}
     <div className="flex-1 p-6 flex items-center justify-start relative">
   <div className="w-[90%] flex items-center justify-center">
-    {videoUrl ? (
-      <div className="w-full h-full flex items-center justify-center">
-        <video 
-          src={videoUrl}
-          autoPlay
-          muted={!isSoundOn}
-          playsInline
-          loop
-          preload="none"
-          controls
-          className="max-w-[70vh] max-h-[70vh] rounded-[30px] object-cover"
-        >
-          Your browser does not support the video tag.
-        </video>
+  {videoUrl ? (
+  <div className="w-full h-full flex items-center justify-center">
+    <video 
+      src={videoUrl}
+      autoPlay
+      muted={!isSoundOn}
+      playsInline
+      loop
+      preload="none"
+      controls
+      className="max-w-[70vh] max-h-[70vh] rounded-[30px] object-cover"
+    >
+      Your browser does not support the video tag.
+    </video>
+  </div>
+) : isGenerating || progress > 0? (
+  <div className="w-full max-w-3xl"> 
+    <div className="w-full aspect-video border-2 border-gray-700 rounded-[30px] flex flex-col items-center justify-center p-8">
+      <div className="flex items-center w-full">
+        <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden relative mr-4">
+          <div 
+            className="h-full bg-cyan-400 transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className="text-sm text-cyan-400 font-semibold">
+          {progress}%
+        </span>
       </div>
-    ) : isGenerating ? (
-      <div className="w-full max-w-3xl"> 
-        {generationPhase === 'submitting' && (
-          <h3 className="text-sm font-semibold mb-6 text-center">
-            Submitting prompt...
-          </h3>
-        )}
-        {generationPhase === 'generating' && (
-          <div className="w-full aspect-video border-2 border-gray-700 rounded-[30px] flex flex-col items-center justify-center p-8">
-             <div className="flex items-center w-full">
-                <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden relative mr-4">
-                  <div 
-                    className="h-full bg-cyan-400 transition-all duration-500 ease-out"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <span className="text-sm text-cyan-400 font-semibold">
-                  {progress}%
-                </span>
-              </div>
-            <p className="text-center text-sm text-zinc-400 mt-4">
-              Your creation is brewing! Enjoy a coffee break while we finalize it.
-            </p>
-          </div>
-        )}
-      </div>
-    ) : (
-      <div className="text-center">
-        <Play className="mx-auto mb-4" size={48} />
-        <p>Unlock your creative potential and experience the magic of Clip Craft AI right now!</p>
-      </div>
-    )}
+      <p className="text-center text-sm text-zinc-400 mt-4">
+        {progress === 100
+          ? "Video generated successfully! It will appear shortly."
+          : generationPhase === 'submitting' 
+            ? "Submitting prompt..."
+            : "Your creation is brewing! Enjoy a coffee break while we finalize it."}
+      </p>
+    </div>
+  </div>
+) : (
+  <div className="text-center">
+    <Play className="mx-auto mb-4" size={48} />
+    <p>Unlock your creative potential and experience the magic of Clip Craft AI right now!</p>
+  </div>
+)}
   </div>
 </div>
 
