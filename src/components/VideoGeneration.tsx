@@ -18,16 +18,25 @@ import { Video } from '../types/Video';
 import { toast } from "react-toastify"
 import Image from "next/image"
 
-const saveToLocalStorage = (key: string, value: any) => {
+type StorageValue = string | number | boolean | object | null;
+
+const saveToLocalStorage = (key: string, value: StorageValue): void => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(key, JSON.stringify(value));
   }
 };
 
-const loadFromLocalStorage = (key: string, defaultValue: any) => {
+const loadFromLocalStorage = <T extends StorageValue>(key: string, defaultValue: T): T => {
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : defaultValue;
+    if (stored !== null) {
+      try {
+        return JSON.parse(stored) as T;
+      } catch {
+        // If parsing fails, return the default value
+        return defaultValue;
+      }
+    }
   }
   return defaultValue;
 };
@@ -35,7 +44,9 @@ const loadFromLocalStorage = (key: string, defaultValue: any) => {
 
 
 const VideoGenerationUI: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'text-to-video' | 'image-to-video'>(() => loadFromLocalStorage('activeTab', 'text-to-video'));
+  const [activeTab, setActiveTab] = useState<'text-to-video' | 'image-to-video' | 'text-to-clip'>(() => 
+    loadFromLocalStorage('activeTab', 'text-to-video')
+  );
   const [prompt, setPrompt] = useState<string>(() => loadFromLocalStorage('prompt', ''));
   const [negativePrompt, setNegativePrompt] = useState<string>(() => loadFromLocalStorage('negativePrompt', ''));
   const [image, setImage] = useState<File | string | null>(() => loadFromLocalStorage('image', null));
@@ -559,8 +570,8 @@ const VideoGenerationUI: React.FC = () => {
   useEffect(() => {
     fetchUserVideos(selectedVideoType);
     
-    const savedImage = loadFromLocalStorage('image', null);
-    if (savedImage && savedImage.startsWith('data:')) {
+    const savedImage = loadFromLocalStorage<string | null>('image', null);
+    if (savedImage && typeof savedImage === 'string' && savedImage.startsWith('data:')) {
       fetch(savedImage)
         .then(res => res.blob())
         .then(blob => {

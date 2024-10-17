@@ -3,6 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { db } from '@/db';
 import { uploadToS3 } from '@/lib/s3Upload';
 
+
 export async function POST(req: Request) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
