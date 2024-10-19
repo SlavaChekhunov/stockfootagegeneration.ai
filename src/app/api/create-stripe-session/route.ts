@@ -4,6 +4,7 @@ import { stripe, getUserSubscriptionPlan } from '@/lib/stripe'
 import { db } from '@/db'
 import { PLANS } from '@/config/stripe'
 import { absoluteUrl } from '@/lib/utils'
+import PostHogClient from '@/lib/posthog'
 
 export async function POST(request: Request) {
   try {
@@ -55,6 +56,22 @@ export async function POST(request: Request) {
         userId: user.id,
       },
     })
+
+    try {
+      const posthog = PostHogClient()
+      posthog.capture({
+        distinctId: user.id,
+        event: 'initiate_checkout',
+        properties: {
+          plan: planName,
+          amount: selectedPlan.price.amount,
+          currency: 'USD',
+        },
+      })
+      await posthog.shutdown()
+    } catch (error) {
+      console.error('Error capturing PostHog event:', error)
+    }
 
     return NextResponse.json({ url: stripeSession.url })
   } catch (error) {

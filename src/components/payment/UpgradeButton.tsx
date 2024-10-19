@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { usePostHog } from 'posthog-js/react'
 
 interface UpgradeButtonProps {
   planName: string;
@@ -11,8 +12,18 @@ interface UpgradeButtonProps {
 
 const UpgradeButton: React.FC<UpgradeButtonProps> = ({ planName, children }) => {
   const [isLoading, setIsLoading] = useState(false)
+  const posthog = usePostHog()
 
   const handleUpgrade = async () => {
+
+    try {
+      posthog.capture('initiate_checkout', {
+        plan: planName
+      })
+    } catch (error) {
+      console.error('Error capturing PostHog event:', error)
+    }
+
     setIsLoading(true)
     try {
       const response = await fetch('/api/create-stripe-session', {

@@ -181,7 +181,7 @@ const TextToClipTab: React.FC<TextToClipTabProps> = ({
         <Textarea
           id="prompt"
           className="w-full h-32 bg-gray-800 border border-gray-700 rounded p-2 text-white pr-16"
-          placeholder="Got a vision? Let's bring it to life. Type away or explore the KLING AI Best Practices"
+          placeholder="Got a vision? Let's bring it to life. Type away or explore the Clip Craft AI Best Practices"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           maxLength={2500}
