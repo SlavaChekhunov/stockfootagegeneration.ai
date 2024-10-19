@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+// import { useState } from 'react'
 import { getUserSubscriptionPlan } from '@/lib/stripe'
 import { toast } from 'react-toastify'
 import MaxWidthWrapper from '../MaxWidthWrapper'
@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card'
-import { Button } from '../ui/button'
-import { Loader2 } from 'lucide-react'
+// import { Button } from '../ui/button'
+// import { Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface BillingFormProps {
@@ -23,7 +23,7 @@ const PLAN_TIERS = ['Starter', 'Pro', 'Premium'] as const
 type PlanTier = typeof PLAN_TIERS[number]
 
 const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  // const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const getNextTier = (currentPlan: string | undefined): PlanTier | null => {
     if (!currentPlan) return 'Starter'
@@ -35,7 +35,7 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
   const nextTier = getNextTier(subscriptionPlan.name)
 
   const createStripeSession = async () => {
-    setIsLoading(true)
+    // setIsLoading(true)
     try {
       const response = await fetch('/api/create-stripe-session', {
         method: 'POST',
@@ -69,7 +69,7 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
         progress: undefined,
       })
     } finally {
-      setIsLoading(false)
+      // setIsLoading(false)
     }
   }
 
@@ -91,7 +91,7 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
           </CardHeader>
 
           <CardFooter className='flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-0'>
-            <Button type='submit' disabled={isLoading}>
+            {/* <Button type='submit' disabled={isLoading}>
               {isLoading ? (
                 <Loader2 className='mr-4 h-4 w-4 animate-spin' />
               ) : null}
@@ -100,13 +100,13 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
                 : nextTier
                 ? `Upgrade to ${nextTier}`
                 : 'Manage Subscription'}
-            </Button>
+            </Button> */}
 
             {subscriptionPlan.isSubscribed && subscriptionPlan.stripeCurrentPeriodEnd ? (
               <p className='rounded-full text-xs font-medium'>
                 {subscriptionPlan.isCanceled
                   ? 'Your plan will be canceled on '
-                  : 'Your plan renews on'}
+                  : 'Your plan renews on'} + {' '}
                 {format(
                   subscriptionPlan.stripeCurrentPeriodEnd,
                   'dd.MM.yyyy'
