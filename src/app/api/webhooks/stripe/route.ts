@@ -3,12 +3,16 @@ import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import type Stripe from 'stripe'
 import { PLANS } from '@/config/stripe'
+import PostHogClient from '../../../../lib/posthog'
+import { PostHog } from 'posthog-node'
 
 export async function POST(request: Request) {
   const body = await request.text()
   const signature = headers().get('Stripe-Signature') ?? ''
 
   let event: Stripe.Event
+
+  let posthog: PostHog | null = null;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -33,6 +37,9 @@ export async function POST(request: Request) {
     })
   }
 
+  try {
+    posthog = PostHogClient()
+
   if (event.type === 'checkout.session.completed') {
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
@@ -56,6 +63,19 @@ export async function POST(request: Request) {
         ),
         plan: planName,
         tokens: tokens,
+      },
+    })
+
+
+     // Capture PostHog event for subscription created
+     posthog.capture({
+      distinctId: session.metadata.userId,
+      event: 'subscription_created',
+      properties: {
+        plan: planName,
+        tokens: tokens,
+        amount: subscription.items.data[0]?.price.unit_amount,
+        currency: subscription.currency,
       },
     })
   }
@@ -83,7 +103,28 @@ export async function POST(request: Request) {
         tokens: tokens,
       },
     })
+
+
+     // Capture PostHog event for subscription renewed
+     posthog.capture({
+      distinctId: session.metadata.userId,
+      event: 'subscription_renewed',
+      properties: {
+        plan: planName,
+        tokens: tokens,
+        amount: subscription.items.data[0]?.price.unit_amount,
+        currency: subscription.currency,
+      },
+    })
   }
+
+} catch (error) {
+  console.error('Error with PostHog:', error)
+} finally {
+  if (posthog) {
+    await posthog.shutdown()
+  }
+}
 
   return new Response(null, { status: 200 })
 }
