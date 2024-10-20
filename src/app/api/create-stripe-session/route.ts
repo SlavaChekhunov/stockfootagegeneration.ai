@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       payment_method_types: ['card'],
       mode: isSubscription ? 'subscription' : 'payment',
       billing_address_collection: 'auto',
+      customer_creation: 'always',
       line_items: [{
         price: selectedPlan.price.priceIds.test,
         quantity: 1,

@@ -2,7 +2,7 @@ import { db } from '@/db'
 import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import type Stripe from 'stripe'
-import { PLANS, ONE_TIME_PURCHASES } from '@/config/stripe'
+import { PLANS } from '@/config/stripe'
 import PostHogClient from '../../../../lib/posthog'
 import { PostHog } from 'posthog-node'
 
@@ -12,7 +12,6 @@ export async function POST(request: Request) {
   const signature = headers().get('Stripe-Signature') ?? ''
 
   let event: Stripe.Event
-
   let posthog: PostHog | null = null;
 
   try {
@@ -35,9 +34,8 @@ export async function POST(request: Request) {
   const session = event.data.object as Stripe.Checkout.Session
 
   if (!session?.metadata?.userId) {
-    return new Response(null, {
-      status: 200,
-    })
+    console.log("No userId in session metadata, skipping processing");
+    return new Response(null, { status: 200 })
   }
 
   try {
@@ -45,131 +43,127 @@ export async function POST(request: Request) {
 
     if (event.type === 'checkout.session.completed') {
       console.log("Checkout session completed");
-      const isSubscription = session.metadata.isSubscription === 'true'
+      const isSubscription = session.metadata?.isSubscription === 'true';
       
       if (isSubscription) {
         console.log("Processing subscription");
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        )
-
-        const priceId = subscription.items.data[0]?.price.id
-        const plan = PLANS.find(plan => plan.price.priceIds.test === priceId)
-        const planName = plan?.name || 'Free'
-        const tokens = plan?.tokens || 0
-
-        await db.user.update({
-          where: {
-            id: session.metadata.userId,
-          },
-          data: {
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            stripePriceId: priceId,
-            stripeCurrentPeriodEnd: new Date(
-              subscription.current_period_end * 1000
-            ),
-            plan: planName,
-            tokens: tokens,
-          },
-        })
-
-        // Capture PostHog event for subscription created
-        posthog.capture({
-          distinctId: session.metadata.userId,
-          event: 'subscription_created',
-          properties: {
-            plan: planName,
-            tokens: tokens,
-            amount: subscription.items.data[0]?.price.unit_amount,
-            currency: subscription.currency,
-          },
-        })
+        await handleSubscription(session);
       } else {
         console.log("Processing one-time purchase");
-        // Handle one-time purchase
-        const priceId = session.line_items?.data[0]?.price?.id
-        const purchase = ONE_TIME_PURCHASES.find(p => p.price.priceIds.test === priceId)
-        const tokens = purchase?.tokens || 0
-
-
-        
-        const user = await db.user.findUnique({
-          where: { id: session.metadata.userId },
-          select: { tokens: true }
-        })
-        console.log("Tokens before update:", user?.tokens);
-        console.log("Tokens to add:", tokens);
-        
-        const updatedUser = await db.user.update({
-          where: {
-            id: session.metadata.userId,
-          },
-          data: {
-            tokens: (user?.tokens || 0) + tokens,
-          },
-        })
-
-        console.log("Tokens after update:", updatedUser.tokens);
-
-        // Capture PostHog event for one-time purchase
-        posthog.capture({
-          distinctId: session.metadata.userId,
-          event: 'one_time_purchase',
-          properties: {
-            tokens: tokens,
-            amount: session.amount_total,
-            currency: session.currency,
-          },
-        })
+        await handleOneTimePurchase(session);
       }
     }
 
-  if (event.type === 'invoice.payment_succeeded') {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    )
+    if (event.type === 'invoice.payment_succeeded') {
+      console.log("Invoice payment succeeded");
+      await handleInvoicePayment(session);
+    }
 
-    const priceId = subscription.items.data[0]?.price.id
-    const plan = PLANS.find(plan => plan.price.priceIds.test === priceId)
-    const planName = plan?.name || 'Free'
-    const tokens = plan?.tokens || 0
-
-    await db.user.update({
-      where: {
-        stripeSubscriptionId: subscription.id,
-      },
-      data: {
-        stripePriceId: priceId,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000
-        ),
-        plan: planName,
-        tokens: tokens,
-      },
-    })
-
-
-     // Capture PostHog event for subscription renewed
-     posthog.capture({
-      distinctId: session.metadata.userId,
-      event: 'subscription_renewed',
-      properties: {
-        plan: planName,
-        tokens: tokens,
-        amount: subscription.items.data[0]?.price.unit_amount,
-        currency: subscription.currency,
-      },
-    })
+  } catch (error) {
+    console.error('Error processing webhook:', error)
+    return new Response(`Webhook Error: ${error instanceof Error ? error.message : 'Unknown Error'}`, { status: 400 })
+  } finally {
+    if (posthog) {
+      await posthog.shutdown()
+    }
   }
-
-} catch (error) {
-  console.error('Error with PostHog:', error)
-} finally {
-  if (posthog) {
-    await posthog.shutdown()
-  }
-}
 
   return new Response(null, { status: 200 })
+}
+
+async function handleSubscription(session: Stripe.Checkout.Session) {
+  const subscriptionId = session.subscription as string;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  const priceId = subscription.items.data[0]?.price.id;
+  const plan = PLANS.find(plan => plan.price.priceIds.test === priceId);
+  const planName = plan?.name || 'Free';
+  const tokens = plan?.tokens || 0;
+
+  await db.user.update({
+    where: { id: session.metadata?.userId },
+    data: {
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: subscription.customer as string,
+      stripePriceId: priceId,
+      stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      plan: planName,
+      tokens: tokens,
+    },
+  });
+
+  PostHogClient().capture({
+    distinctId: session.metadata?.userId || '',
+    event: 'subscription_created',
+    properties: {
+      plan: planName,
+      tokens: tokens,
+      amount: subscription.items.data[0]?.price.unit_amount,
+      currency: subscription.currency,
+    },
+  });
+}
+
+async function handleOneTimePurchase(session: Stripe.Checkout.Session) {
+  const userId = session.metadata?.userId;
+  const planName = session.metadata?.planName || '';
+  const tokens = parseInt(planName.split('-')[0] || '0', 10);
+
+  if (userId) {
+    const user = await db.user.findUnique({ where: { id: userId } });
+    
+    if (user) {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          tokens: (user.tokens || 0) + tokens,
+          stripeCustomerId: session.customer as string,
+        },
+      });
+      console.log(`Updated user ${userId} with ${tokens} tokens`);
+    } else {
+      console.error(`User not found: ${userId}`);
+    }
+  }
+
+  PostHogClient().capture({
+    distinctId: userId || '',
+    event: 'one_time_purchase',
+    properties: {
+      tokens: tokens,
+      amount: session.amount_total,
+      currency: session.currency,
+    },
+  });
+}
+
+async function handleInvoicePayment(session: Stripe.Checkout.Session) {
+  const subscriptionId = session.subscription as string;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  const priceId = subscription.items.data[0]?.price.id;
+  const plan = PLANS.find(plan => plan.price.priceIds.test === priceId);
+  const planName = plan?.name || 'Free';
+  const tokens = plan?.tokens || 0;
+
+  await db.user.update({
+    where: { stripeSubscriptionId: subscription.id },
+    data: {
+      stripePriceId: priceId,
+      stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      plan: planName,
+      tokens: tokens,
+    },
+  });
+
+  PostHogClient().capture({
+    distinctId: session.metadata?.userId || '',
+    event: 'subscription_renewed',
+    properties: {
+      plan: planName,
+      tokens: tokens,
+      amount: subscription.items.data[0]?.price.unit_amount,
+      currency: subscription.currency,
+    },
+  });
 }
