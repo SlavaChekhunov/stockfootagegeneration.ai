@@ -1,4 +1,4 @@
-import { PLANS } from '@/config/stripe'
+import { PLANS, ONE_TIME_PURCHASES } from '@/config/stripe'
 import { db } from '@/db'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import Stripe from 'stripe'
@@ -27,6 +27,14 @@ export async function getUserSubscriptionPlan() {
     where: {
       id: user.id,
     },
+    select: {
+      stripeSubscriptionId: true,
+      stripeCurrentPeriodEnd: true,
+      stripeCustomerId: true,
+      stripePriceId: true,
+      plan: true,
+      tokens: true,
+    },
   })
 
   if (!dbUser) {
@@ -46,26 +54,48 @@ export async function getUserSubscriptionPlan() {
       dbUser.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now()
   )
 
-  const plan = isSubscribed
-    ? PLANS.find((plan) => plan.price.priceIds.test === dbUser.stripePriceId)
-    : null
-
-  let isCanceled = false
-  if (isSubscribed && dbUser.stripeSubscriptionId) {
-    const stripePlan = await stripe.subscriptions.retrieve(
-      dbUser.stripeSubscriptionId
-    )
-    isCanceled = stripePlan.cancel_at_period_end
+  if (isSubscribed) {
+    const plan = PLANS.find((plan) => plan.price.priceIds.test === dbUser.stripePriceId)
+    let isCanceled = false
+    if (dbUser.stripeSubscriptionId) {
+      const stripePlan = await stripe.subscriptions.retrieve(
+        dbUser.stripeSubscriptionId
+      )
+      isCanceled = stripePlan.cancel_at_period_end
+    }
+    return {
+      ...plan,
+      stripeSubscriptionId: dbUser.stripeSubscriptionId,
+      stripeCurrentPeriodEnd: dbUser.stripeCurrentPeriodEnd,
+      stripeCustomerId: dbUser.stripeCustomerId,
+      stripePriceId: dbUser.stripePriceId,
+      tokens: dbUser.tokens,
+      isSubscribed: true,
+      isCanceled,
+      plan: plan?.name || "You're not on any plan yet",
+    }
   }
 
+  // If the user has tokens but no active subscription, they've made a one-time purchase
+  if (dbUser.tokens > 0) {
+    const purchase = ONE_TIME_PURCHASES.find((p) => p.tokens <= dbUser.tokens)
+    return {
+      ...purchase,
+      tokens: dbUser.tokens,
+      isSubscribed: false,
+      isCanceled: false,
+      stripeCurrentPeriodEnd: null,
+      plan: purchase?.name || "One-time purchase",
+    }
+  }
+
+  // Default to the free plan if no subscription or tokens
   return {
-    ...plan,
-    stripeSubscriptionId: dbUser.stripeSubscriptionId,
-    stripeCurrentPeriodEnd: dbUser.stripeCurrentPeriodEnd,
-    stripeCustomerId: dbUser.stripeCustomerId,
-    isSubscribed,
-    isCanceled,
-    tokens: dbUser.tokens,
-    plan: plan?.name || "You're not on any plan yet",
+    ...PLANS[0],
+    tokens: 0,
+    isSubscribed: false,
+    isCanceled: false,
+    stripeCurrentPeriodEnd: null,
+    plan: "You're not on any plan yet",
   }
 }

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
 import { stripe, getUserSubscriptionPlan } from '@/lib/stripe'
 import { db } from '@/db'
-import { PLANS } from '@/config/stripe'
+import { PLANS, ONE_TIME_PURCHASES } from '@/config/stripe'
 import { absoluteUrl } from '@/lib/utils'
 import PostHogClient from '@/lib/posthog'
 
@@ -35,18 +35,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ url: stripeSession.url })
     }
 
-    const { planName } = await request.json()
-    const selectedPlan = PLANS.find(plan => plan.name === planName)
+    const { planName, isSubscription } = await request.json()
+    let selectedPlan
+
+    if (isSubscription) {
+      selectedPlan = PLANS.find(plan => plan.name === planName)
+    } else {
+      selectedPlan = ONE_TIME_PURCHASES.find(plan => plan.slug === planName)
+    }
 
     if (!selectedPlan) {
       return NextResponse.json({ message: 'Invalid plan selected' }, { status: 400 })
     }
 
     const stripeSession = await stripe.checkout.sessions.create({
-      success_url: billingUrl,
-      cancel_url: billingUrl,
+      success_url: absoluteUrl('/dashboard'),
+      cancel_url: absoluteUrl('/pricing'),
       payment_method_types: ['card'],
-      mode: 'subscription',
+      mode: isSubscription ? 'subscription' : 'payment',
       billing_address_collection: 'auto',
       line_items: [{
         price: selectedPlan.price.priceIds.test,
@@ -54,6 +60,8 @@ export async function POST(request: Request) {
       }],
       metadata: {
         userId: user.id,
+        planName: planName,
+        isSubscription: isSubscription.toString(),
       },
     })
 
@@ -66,6 +74,7 @@ export async function POST(request: Request) {
           plan: planName,
           amount: selectedPlan.price.amount,
           currency: 'USD',
+          isSubscription: isSubscription,
         },
       })
       await posthog.shutdown()

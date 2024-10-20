@@ -19,9 +19,11 @@ const NavBar = async () => {
   const user = await getUser()
 
   let initialTokens = 0
+  let hasAccess = false
   if (user) {
     const subscriptionPlan = await getUserSubscriptionPlan()
     initialTokens = subscriptionPlan.tokens || 0
+    hasAccess = subscriptionPlan.isSubscribed || initialTokens > 0
   }
 
   return (
@@ -71,17 +73,19 @@ const NavBar = async () => {
               </>
             ) : (
               <>
-              <TokenProvider initialTokens={initialTokens}>
+                <TokenProvider initialTokens={initialTokens}>
                   <TokenDisplayNavBar />
                 </TokenProvider>
-                <Link
-                  href='/dashboard'
-                  className={buttonVariants({
-                    variant: 'ghost',
-                    size: 'sm',
-                  })}>
-                  Dashboard
-                </Link>
+                {hasAccess && (
+                  <Link
+                    href='/dashboard'
+                    className={buttonVariants({
+                      variant: 'ghost',
+                      size: 'sm',
+                    })}>
+                    Dashboard
+                  </Link>
+                )}
                 <UserAccountNav
                   name={
                     !user.given_name || !user.family_name

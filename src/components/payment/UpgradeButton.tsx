@@ -7,10 +7,11 @@ import { usePostHog } from 'posthog-js/react'
 
 interface UpgradeButtonProps {
   planName: string;
+  isSubscription: boolean;
   children: React.ReactNode;
 }
 
-const UpgradeButton: React.FC<UpgradeButtonProps> = ({ planName, children }) => {
+const UpgradeButton: React.FC<UpgradeButtonProps> = ({ planName, isSubscription, children }) => {
   const [isLoading, setIsLoading] = useState(false)
   const posthog = usePostHog()
 
@@ -24,14 +25,16 @@ const UpgradeButton: React.FC<UpgradeButtonProps> = ({ planName, children }) => 
       console.error('Error capturing PostHog event:', error)
     }
 
-    setIsLoading(true)
     try {
       const response = await fetch('/api/create-stripe-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planName }),
+        body: JSON.stringify({ 
+          planName: planName,
+          isSubscription 
+        }),
       })
 
       if (!response.ok) {
