@@ -48,6 +48,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Invalid plan selected' }, { status: 400 })
     }
 
+    console.log("Creating Stripe session for:", {
+      planName,
+      isSubscription,
+      userId: user.id,
+    });
+
     const stripeSession = await stripe.checkout.sessions.create({
       success_url: absoluteUrl('/dashboard'),
       cancel_url: absoluteUrl('/pricing'),
@@ -64,6 +70,8 @@ export async function POST(request: Request) {
         isSubscription: isSubscription.toString(),
       },
     })
+
+    console.log("Stripe session created:", stripeSession.id);
 
     try {
       const posthog = PostHogClient()

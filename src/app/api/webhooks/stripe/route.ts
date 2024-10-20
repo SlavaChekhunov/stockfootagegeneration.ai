@@ -7,6 +7,7 @@ import PostHogClient from '../../../../lib/posthog'
 import { PostHog } from 'posthog-node'
 
 export async function POST(request: Request) {
+  console.log("Webhook received");
   const body = await request.text()
   const signature = headers().get('Stripe-Signature') ?? ''
 
@@ -20,7 +21,9 @@ export async function POST(request: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET || ''
     )
+    console.log("Event constructed successfully:", event.type);
   } catch (err) {
+    console.error("Error constructing event:", err);
     return new Response(
       `Webhook Error: ${
         err instanceof Error ? err.message : 'Unknown Error'
@@ -41,9 +44,11 @@ export async function POST(request: Request) {
     posthog = PostHogClient()
 
     if (event.type === 'checkout.session.completed') {
+      console.log("Checkout session completed");
       const isSubscription = session.metadata.isSubscription === 'true'
       
       if (isSubscription) {
+        console.log("Processing subscription");
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
@@ -81,17 +86,22 @@ export async function POST(request: Request) {
           },
         })
       } else {
+        console.log("Processing one-time purchase");
         // Handle one-time purchase
         const priceId = session.line_items?.data[0]?.price?.id
         const purchase = ONE_TIME_PURCHASES.find(p => p.price.priceIds.test === priceId)
         const tokens = purchase?.tokens || 0
 
+
+        
         const user = await db.user.findUnique({
           where: { id: session.metadata.userId },
           select: { tokens: true }
         })
-
-        await db.user.update({
+        console.log("Tokens before update:", user?.tokens);
+        console.log("Tokens to add:", tokens);
+        
+        const updatedUser = await db.user.update({
           where: {
             id: session.metadata.userId,
           },
@@ -99,6 +109,8 @@ export async function POST(request: Request) {
             tokens: (user?.tokens || 0) + tokens,
           },
         })
+
+        console.log("Tokens after update:", updatedUser.tokens);
 
         // Capture PostHog event for one-time purchase
         posthog.capture({
