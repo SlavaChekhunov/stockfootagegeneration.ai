@@ -1,7 +1,6 @@
 import MaxWidthWrapper from '@/components/MaxWidthWrapper'
 import UpgradeButton from '@/components/payment/UpgradeButton'
 import PricingToggle from '@/components/pricingToggle'
-import { buttonVariants } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +17,21 @@ import {
   Minus,
 } from 'lucide-react'
 
+interface FeatureItem {
+  text: string;
+  negative?: boolean;
+  footnote?: string;
+}
+
+interface PricingPlan {
+  plan: string;
+  tagline: string;
+  price: number;
+  quota: number;
+  features: FeatureItem[];
+}
+
+
 export default async function Page({
   searchParams,
 }: {
@@ -28,101 +42,101 @@ export default async function Page({
 
   const isSubscription = searchParams.type !== 'onetime'
 
-    const subscriptionPlans = [
-      {
-        plan: 'Starter',
-        tagline: 'For individuals getting started.',
-        price: PLANS.find((p) => p.slug === 'starter')!.price.amount,
-        quota: PLANS.find((p) => p.slug === 'starter')!.quota,
-        features: [
-          { text: '860 Credits per month' },
-          { text: 'Generate 1 video at a time' },
-          { text: 'Basic Fast-Track Generation' },
-          { text: 'Remove watermarks', negative: false },
-          { text: 'Standard quality videos' },
-          { text: 'Generate videos with audio' },
-          { text: 'Email support', negative: false },
-        ],
-      },
-      {
-        plan: 'Pro',
-        tagline: 'For professionals and film enthusiasts.',
-        price: PLANS.find((p) => p.slug === 'pro')!.price.amount,
-        quota: PLANS.find((p) => p.slug === 'pro')!.quota,
-        features: [
-          { text: '2000 Credits per month' },
-          { text: 'Generate 3 videos at a time' },
-          { text: 'Advanced Fast-Track Generation' },
-          { text: 'Remove watermarks' },
-          { text: 'Professional Mode videos' },
-          { text: 'Generate videos with audio' },
-          { text: 'Priority email support' },
-        ],
-      },
-      {
-        plan: 'Premium',
-        tagline: 'For film makers and high-volume users.',
-        price: PLANS.find((p) => p.slug === 'premium')!.price.amount,
-        quota: PLANS.find((p) => p.slug === 'premium')!.quota,
-        features: [
-          { text: '8,000 Credits per month' },
-          { text: 'Generate 4 videos at a time' },
-          { text: 'Exclusive Fast-Track Generation' },
-          { text: 'Remove watermarks' },
-          { text: 'Premium Features: Video Extension' },
-          { text: 'Generate videos with audio' },
-          { text: '24/7 Priority support' },
-        ],
-      },
-    ]
-    
-    const oneTimePurchases = [
-      {
-        plan: 'Starter',
-        tagline: 'For quick projects and trials.',
-        price: ONE_TIME_PURCHASES.find((p) => p.slug === '120-tokens')!.price.amount,
-        quota: ONE_TIME_PURCHASES.find((p) => p.slug === '120-tokens')!.tokens,
-        features: [
-          { text: '120 Credits' },
-          { text: 'Generate 1 video at a time' },
-          { text: 'Standard Fast-Track Generation' },
-          { text: 'Remove watermarks', negative: false },
-          { text: 'Standard quality videos' },
-          { text: 'Generate videos with audio' },
-          { text: 'Email support', negative: false },
-        ],
-      },
-      {
-        plan: 'Pro',
-        tagline: 'For medium-sized projects.',
-        price: ONE_TIME_PURCHASES.find((p) => p.slug === '540-tokens')!.price.amount,
-        quota: ONE_TIME_PURCHASES.find((p) => p.slug === '540-tokens')!.tokens,
-        features: [
-          { text: '540 Credits' },
-          { text: 'Generate 2 videos at a time' },
-          { text: 'Advanced Fast-Track Generation' },
-          { text: 'Remove watermarks' },
-          { text: 'High quality videos' },
-          { text: 'Generate videos with audio' },
-          { text: 'Priority email support' },
-        ],
-      },
-      {
-        plan: 'Premium',
-        tagline: 'For large projects and power users.',
-        price: ONE_TIME_PURCHASES.find((p) => p.slug === '1100-tokens')!.price.amount,
-        quota: ONE_TIME_PURCHASES.find((p) => p.slug === '1100-tokens')!.tokens,
-        features: [
-          { text: '1100 Credits' },
-          { text: 'Generate 3 videos at a time' },
-          { text: 'Exclusive Fast-Track Generation' },
-          { text: 'Remove watermarks' },
-          { text: 'Premium quality videos' },
-          { text: 'Generate videos with audio' },
-          { text: '24/7 Priority support' },
-        ],
-      },
-    ]
+  const subscriptionPlans: PricingPlan[] = [
+    {
+      plan: 'Starter',
+      tagline: 'For individuals getting started.',
+      price: PLANS.find((p) => p.slug === 'starter')!.price.amount,
+      quota: PLANS.find((p) => p.slug === 'starter')!.quota,
+      features: [
+        { text: '860 Credits per month' },
+        { text: 'Generate 1 video at a time' },
+        { text: 'Basic Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'Standard quality videos' },
+        { text: 'Generate videos with audio' },
+        { text: 'Email support' },
+      ],
+    },
+    {
+      plan: 'Pro',
+      tagline: 'For professionals and film enthusiasts.',
+      price: PLANS.find((p) => p.slug === 'pro')!.price.amount,
+      quota: PLANS.find((p) => p.slug === 'pro')!.quota,
+      features: [
+        { text: '2000 Credits per month' },
+        { text: 'Generate 3 videos at a time' },
+        { text: 'Advanced Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'Professional Mode videos' },
+        { text: 'Generate videos with audio' },
+        { text: 'Priority email support' },
+      ],
+    },
+    {
+      plan: 'Premium',
+      tagline: 'For film makers and high-volume users.',
+      price: PLANS.find((p) => p.slug === 'premium')!.price.amount,
+      quota: PLANS.find((p) => p.slug === 'premium')!.quota,
+      features: [
+        { text: '8,000 Credits per month' },
+        { text: 'Generate 4 videos at a time' },
+        { text: 'Exclusive Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'Premium Features: Video Extension' },
+        { text: 'Generate videos with audio' },
+        { text: '24/7 Priority support' },
+      ],
+    },
+  ]
+  
+  const oneTimePurchases: PricingPlan[] = [
+    {
+      plan: 'Starter',
+      tagline: 'For quick projects and trials.',
+      price: ONE_TIME_PURCHASES.find((p) => p.slug === '120-tokens')!.price.amount,
+      quota: ONE_TIME_PURCHASES.find((p) => p.slug === '120-tokens')!.tokens,
+      features: [
+        { text: '120 Credits' },
+        { text: 'Generate 1 video at a time' },
+        { text: 'Standard Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'Standard quality videos' },
+        { text: 'Generate videos with audio' },
+        { text: 'Email support' },
+      ],
+    },
+    {
+      plan: 'Pro',
+      tagline: 'For medium-sized projects.',
+      price: ONE_TIME_PURCHASES.find((p) => p.slug === '540-tokens')!.price.amount,
+      quota: ONE_TIME_PURCHASES.find((p) => p.slug === '540-tokens')!.tokens,
+      features: [
+        { text: '540 Credits' },
+        { text: 'Generate 2 videos at a time' },
+        { text: 'Advanced Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'High quality videos' },
+        { text: 'Generate videos with audio' },
+        { text: 'Priority email support' },
+      ],
+    },
+    {
+      plan: 'Premium',
+      tagline: 'For large projects and power users.',
+      price: ONE_TIME_PURCHASES.find((p) => p.slug === '1100-tokens')!.price.amount,
+      quota: ONE_TIME_PURCHASES.find((p) => p.slug === '1100-tokens')!.tokens,
+      features: [
+        { text: '1100 Credits' },
+        { text: 'Generate 3 videos at a time' },
+        { text: 'Exclusive Fast-Track Generation' },
+        { text: 'Remove watermarks' },
+        { text: 'Premium quality videos' },
+        { text: 'Generate videos with audio' },
+        { text: '24/7 Priority support' },
+      ],
+    },
+  ]
     
     const pricingItems = isSubscription ? subscriptionPlans : oneTimePurchases
 
@@ -143,7 +157,7 @@ export default async function Page({
           <div className='pt-8 grid grid-cols-1 gap-8 lg:grid-cols-3'>
             <TooltipProvider>
               {pricingItems.map(
-                ({ plan, tagline, price, quota, features }) => {
+                ({ plan, price, quota, features }) => {
                   return (
                     <div
                       key={plan}
@@ -194,7 +208,7 @@ export default async function Page({
                       {features && (
                         <ul className='my-6 space-y-3 px-4 text-sm'>
                           {features.map(
-                            ({ text, negative, footnote }) => (
+                            ({ text, negative, footnote }: FeatureItem) => (
                               <li
                                 key={text}
                                 className='flex space-x-3'>
