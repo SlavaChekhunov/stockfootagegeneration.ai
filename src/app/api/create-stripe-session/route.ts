@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
-import { stripe, getUserSubscriptionPlan } from '@/lib/stripe'
+import { stripe } from '@/lib/stripe'
 import { db } from '@/db'
 import { PLANS, ONE_TIME_PURCHASES } from '@/config/stripe'
 import { absoluteUrl } from '@/lib/utils'
@@ -23,18 +23,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const subscriptionPlan = await getUserSubscriptionPlan()
-    const billingUrl = absoluteUrl('/dashboard')
-
-    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
-      const stripeSession = await stripe.billingPortal.sessions.create({
-        customer: dbUser.stripeCustomerId,
-        return_url: billingUrl,
-      })
-
-      return NextResponse.json({ url: stripeSession.url })
-    }
-
     const { planName, isSubscription } = await request.json()
     let selectedPlan
 
@@ -54,13 +42,29 @@ export async function POST(request: Request) {
       userId: user.id,
     });
 
+    let stripeCustomerId = dbUser.stripeCustomerId
+
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email!,
+        metadata: {
+          userId: user.id,
+        },
+      })
+      stripeCustomerId = customer.id
+      await db.user.update({
+        where: { id: user.id },
+        data: { stripeCustomerId: customer.id },
+      })
+    }
+
     const stripeSession = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
       success_url: absoluteUrl('/dashboard'),
       cancel_url: absoluteUrl('/pricing'),
       payment_method_types: ['card'],
       mode: isSubscription ? 'subscription' : 'payment',
       billing_address_collection: 'auto',
-      customer_creation: 'always',
       line_items: [{
         price: selectedPlan.price.priceIds.test,
         quantity: 1,
