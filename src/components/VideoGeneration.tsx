@@ -475,10 +475,8 @@ const VideoGenerationUI: React.FC = () => {
       // Refund tokens if the error occurred after deduction
       try {
         await refundTokens(TOKENS_TO_DEDUCT);
-        toast.info(`${TOKENS_TO_DEDUCT} tokens have been refunded due to the error.`);
       } catch (refundError) {
         console.error('Error refunding tokens:', refundError);
-        toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
       }
     } finally {
       setIsGenerating(false);
@@ -526,17 +524,14 @@ const VideoGenerationUI: React.FC = () => {
             toast.info(`${tokensToRefund} tokens have been refunded due to the failed generation.`);
           } catch (refundError) {
             console.error('Error refunding tokens:', refundError);
-            toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
           }
         } else {
           // Still in progress
-          toast.info(`Video generation in progress: ${data.status}`);
         }
       } catch (error) {
         clearInterval(pollInterval);
         clearInterval(progressInterval);
         console.error('Error checking generation status:', error);
-        toast.error(`Error checking generation status: ${(error as Error).message}`);
         setIsGenerating(false);
   
         // Refund tokens in case of error
@@ -545,7 +540,6 @@ const VideoGenerationUI: React.FC = () => {
           toast.info(`${tokensToRefund} tokens have been refunded due to the error.`);
         } catch (refundError) {
           console.error('Error refunding tokens:', refundError);
-          toast.error(`Failed to refund tokens: ${(refundError as Error).message}`);
         }
       }
     }, 5000);
