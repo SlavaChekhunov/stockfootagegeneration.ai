@@ -407,11 +407,11 @@ const VideoGenerationUI: React.FC = () => {
      // Clear localStorage
     localStorage.clear();
   
-    const startTime = Date.now();
     const GENERATION_TIME = 452000;
     const TOKENS_TO_DEDUCT = 50;  
-  
+    
     try {
+      
       console.log('Deducting tokens');
       // Deduct tokens
       const deductResponse = await fetch('/api/deduct-tokens', {
@@ -453,20 +453,21 @@ const VideoGenerationUI: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to start video generation');
       }
-  
+      
       const { videoId } = await response.json();
       console.log('Received videoId:', videoId);
       setGenerationPhase('generating');
 
-      // Start progress simulation
+      const startTime = Date.now();
       const progressInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
         const newProgress = Math.min(Math.floor((elapsedTime / GENERATION_TIME) * 99), 99);
         setProgress(newProgress);
       }, 1000);
-
+  
       console.log('Starting to poll generation status');
       await pollGenerationStatus(videoId, progressInterval, TOKENS_TO_DEDUCT);
+  
 
   
     } catch (error) {
@@ -511,7 +512,6 @@ const VideoGenerationUI: React.FC = () => {
           setAspectRatio('16:9');
   
           toast.success('Video generated successfully!');
-          
         } else if (data.status === 'FAILED') {
           clearInterval(pollInterval);
           clearInterval(progressInterval);
@@ -525,9 +525,8 @@ const VideoGenerationUI: React.FC = () => {
           } catch (refundError) {
             console.error('Error refunding tokens:', refundError);
           }
-        } else {
-          // Still in progress
         }
+        // No 'else' condition here, as we want to keep the frontend progress simulation running
       } catch (error) {
         clearInterval(pollInterval);
         clearInterval(progressInterval);
@@ -542,7 +541,7 @@ const VideoGenerationUI: React.FC = () => {
           console.error('Error refunding tokens:', refundError);
         }
       }
-    }, 5000);
+    }, 2000); // Poll every 2 seconds
   };
 
 
