@@ -26,8 +26,8 @@ export default async function Page() {
 
   const subscriptionPlan = await getUserSubscriptionPlan()
 
-  if (!subscriptionPlan.isSubscribed) {
-    redirect('/pricing')
+  if (!subscriptionPlan.isSubscribed && subscriptionPlan.tokens === 0) {
+    return redirect('/pricing')
   }
 
   const initialTokens = subscriptionPlan.tokens || 0;

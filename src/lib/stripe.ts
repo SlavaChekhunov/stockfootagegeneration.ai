@@ -86,6 +86,7 @@ export async function getUserSubscriptionPlan() {
       isCanceled: false,
       stripeCurrentPeriodEnd: null,
       plan: purchase?.name || "One-time purchase",
+      hasAccess: true,
     }
   }
 
@@ -97,5 +98,6 @@ export async function getUserSubscriptionPlan() {
     isCanceled: false,
     stripeCurrentPeriodEnd: null,
     plan: "You're not on any plan yet",
+    hasAccess: false,
   }
 }
